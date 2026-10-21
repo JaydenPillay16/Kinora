@@ -13,6 +13,23 @@ import type { Session } from "@supabase/supabase-js";
 import type { ScheduledMessage } from "./Features/scheduling/types";
 import { syncScheduledMessage } from "./Features/scheduling/schedulingService";
 import UpcomingMessages from "./Features/scheduling/UpcomingMessages";
+import KinoraLogo from "./Components/branding/KinoraLogo";
+import ThemeToggle from "./Components/branding/ThemeToggle";
+
+import {
+  Activity,
+  Bot,
+  CalendarClock,
+  CheckCircle2,
+  ChevronRight,
+  Clock3,
+  Heart,
+  MessageCircle,
+  Plus,
+  Send,
+  Sparkles,
+  UsersRound,
+} from "lucide-react";
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -334,15 +351,21 @@ function App() {
       );
     }
 
-    setAgents((currentAgents) => [savedAgent, ...currentAgents]);
-    setIsCreatingAgent(false);
+    setAgents((currentAgents) => {
+      const alreadyExists = currentAgents.some(
+        (agent) => agent.id === savedAgent.id,
+      );
 
-    setAgents((currentAgents) =>
-      currentAgents.map((agent) =>
+      if (!alreadyExists) {
+        return [savedAgent, ...currentAgents];
+      }
+
+      return currentAgents.map((agent) =>
         agent.id === savedAgent.id ? savedAgent : agent,
-      ),
-    );
+      );
+    });
 
+    setIsCreatingAgent(false);
     setEditingAgent(null);
   }
 
@@ -605,8 +628,8 @@ function App() {
 
   if (isAuthLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-kinora-background text-kinora-text">
-        <p className="text-kinora-muted">Loading Kinora...</p>
+      <div className="app-transition flex min-h-screen items-center justify-center bg-[var(--app-background)] text-[var(--app-text)]">
+        <p className="text-[var(--app-text-muted)]">Loading Kinora...</p>
       </div>
     );
   }
@@ -616,15 +639,20 @@ function App() {
   }
 
   return (
-    <div className="flex min-h-screen bg-kinora-background text-kinora-text">
+    <div className="app-transition flex min-h-screen bg-[var(--app-background)] text-[var(--app-text)]">
       <Sidebar />
 
       <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex items-center justify-between border-b border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-3 sm:px-8">
+          <KinoraLogo size={40} showTagline />
+          <ThemeToggle />
+        </div>
+
         <Header />
 
-        <main className="flex-1 p-5 sm:p-8">
-          <div className="mx-auto max-w-7xl">
-            <p className="text-sm font-medium text-kinora-primary">
+        <main className="flex-1 px-5 py-7 sm:px-8 sm:py-9 lg:px-10">
+          <div className="mx-auto max-w-[1440px]">
+            <p className="text-sm font-semibold text-[var(--app-accent)]">
               {new Date().toLocaleDateString("en-ZA", {
                 weekday: "long",
                 day: "numeric",
@@ -633,21 +661,27 @@ function App() {
               })}
             </p>
 
-            <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <div className="mt-5 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-[var(--app-accent)]">
+                  Your personal workspace
+                </p>
+
+                <h2 className="mt-2 text-3xl font-bold tracking-tight text-[var(--app-text)] sm:text-4xl">
                   {new Date().getHours() < 12
                     ? "Good morning!"
                     : new Date().getHours() < 18
                       ? "Good afternoon!"
                       : "Good evening!"}
                 </h2>
-                <p className="mt-2 text-kinora-muted">
-                  Here's what's happening with your personal messaging.
+
+                <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--app-text-muted)] sm:text-base">
+                  A little more thought, a little more connection. Here's your
+                  overview of the people and messages that matter.
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex shrink-0 flex-wrap items-center gap-3">
                 <button
                   type="button"
                   onClick={async () => {
@@ -657,17 +691,23 @@ function App() {
                       console.error("Sign out failed:", error.message);
                     }
                   }}
-                  className="rounded-xl border border-kinora-border px-4 py-3 text-sm font-semibold transition hover:bg-kinora-background"
+                  className="rounded-xl border border-[var(--app-border)] px-4 py-3 text-sm font-semibold text-[var(--app-text-muted)] transition hover:bg-[var(--app-surface-secondary)] hover:text-[var(--app-text)]"
                 >
                   Sign out
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setIsCreatingAgent(true)}
-                  className="rounded-xl bg-kinora-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800"
+                  onClick={() => {
+                    setEditingAgent(null);
+                    setIsCreatingAgent(true);
+                  }}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--app-primary)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
                 >
-                  + Create an agent
+                  <span aria-hidden="true" className="text-lg leading-none">
+                    +
+                  </span>
+                  Create an agent
                 </button>
               </div>
             </div>
@@ -688,82 +728,153 @@ function App() {
               </section>
             )}
 
-            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {[
                 {
                   label: "Active agents",
-                  value: String(
-                    agents.filter((agent) => agent.status === "active").length,
-                  ),
+                  value: agents.filter((agent) => agent.status === "active")
+                    .length,
                   detail: "Your personal assistants",
+                  icon: Bot,
+                  accent: "text-emerald-600 dark:text-emerald-300",
+                  iconBg: "bg-emerald-500/10",
                 },
                 {
                   label: "Scheduled messages",
-                  value: String(scheduledMessageCount),
-                  detail: "Pending messages",
+                  value: scheduledMessageCount,
+                  detail: "Messages awaiting delivery",
+                  icon: CalendarClock,
+                  accent: "text-sky-600 dark:text-sky-300",
+                  iconBg: "bg-sky-500/10",
                 },
                 {
                   label: "Messages sent",
-                  value: String(sentMessageCount),
+                  value: sentMessageCount,
                   detail: "Successfully delivered",
+                  icon: Send,
+                  accent: "text-violet-600 dark:text-violet-300",
+                  iconBg: "bg-violet-500/10",
                 },
                 {
                   label: "Contacts",
-                  value: String(contacts.length),
+                  value: contacts.length,
                   detail: "People who matter to you",
+                  icon: UsersRound,
+                  accent: "text-rose-600 dark:text-rose-300",
+                  iconBg: "bg-rose-500/10",
                 },
-              ].map((stat) => (
-                <section
-                  key={stat.label}
-                  className="rounded-2xl border border-kinora-border bg-white p-5"
-                >
-                  <p className="text-sm text-kinora-muted">{stat.label}</p>
-                  <p className="mt-4 text-3xl font-bold">{stat.value}</p>
-                  <p className="mt-2 text-xs text-kinora-muted">
-                    {stat.detail}
-                  </p>
-                </section>
-              ))}
+              ].map((stat) => {
+                const Icon = stat.icon;
+
+                return (
+                  <section
+                    key={stat.label}
+                    className="surface surface-hover group relative overflow-hidden rounded-2xl border border-[var(--app-border)] p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/[0.04] sm:p-6"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-medium text-[var(--app-text-muted)]">
+                          {stat.label}
+                        </p>
+
+                        <p className="mt-5 text-3xl font-bold tracking-tight text-[var(--app-text)] tabular-nums">
+                          {stat.value}
+                        </p>
+                      </div>
+
+                      <span
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${stat.iconBg} ${stat.accent} transition-transform duration-300 group-hover:scale-110`}
+                      >
+                        <Icon size={21} strokeWidth={1.8} />
+                      </span>
+                    </div>
+
+                    <div className="mt-4 flex items-center gap-2">
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${stat.iconBg.replace("/10", "")}`}
+                      />
+                      <p className="text-xs leading-5 text-[var(--app-text-muted)]">
+                        {stat.detail}
+                      </p>
+                    </div>
+
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-x-0 bottom-0 h-[2px] origin-left scale-x-0 bg-[var(--app-accent)] transition-transform duration-300 group-hover:scale-x-100"
+                    />
+                  </section>
+                );
+              })}
             </div>
 
-            <section className="mt-6 rounded-2xl border border-kinora-border bg-white p-6 sm:p-8">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-kinora-mint text-xl text-kinora-primary">
-                ✳
+            <section className="surface relative mt-6 overflow-hidden rounded-3xl border border-[var(--app-border)] p-6 sm:p-8 lg:p-9">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-[var(--app-accent)] opacity-[0.08] blur-3xl"
+              />
+
+              <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="max-w-2xl">
+                  <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--app-primary)] text-white shadow-lg shadow-emerald-950/10 dark:text-[#0b1713]">
+                    <Heart size={25} strokeWidth={1.8} />
+                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[var(--app-surface)] bg-[var(--app-accent)] text-white">
+                      <Sparkles size={10} strokeWidth={2.5} />
+                    </span>
+                  </div>
+
+                  <p className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">
+                    {agents.length === 0
+                      ? "A thoughtful start"
+                      : "Your Kinora workspace"}
+                  </p>
+
+                  <h3 className="mt-2 text-xl font-bold tracking-tight text-[var(--app-text)] sm:text-2xl">
+                    {agents.length === 0
+                      ? "Make staying connected a little easier."
+                      : "Small moments make meaningful connections."}
+                  </h3>
+
+                  <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--app-text-muted)]">
+                    {agents.length === 0
+                      ? "Create your first messaging agent to plan thoughtful messages, organise your schedule, and keep the people who matter close."
+                      : "Manage your messaging assistants, review upcoming plans, and keep the important people in your life in mind."}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingAgent(null);
+                    setIsCreatingAgent(true);
+                  }}
+                  className="relative inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-3 text-sm font-semibold text-[var(--app-text)] transition hover:bg-[var(--app-surface-secondary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] sm:self-center"
+                >
+                  {agents.length === 0
+                    ? "Create your first agent"
+                    : "Create an agent"}
+                  <ChevronRight size={17} aria-hidden="true" />
+                </button>
               </div>
-
-              <h3 className="mt-5 text-xl font-semibold">
-                Your next meaningful moment starts here
-              </h3>
-
-              <p className="mt-2 max-w-xl leading-7 text-kinora-muted">
-                Create your first messaging agent to plan thoughtful messages,
-                manage schedules, and stay connected with the people who matter.
-              </p>
-
-              <button
-                type="button"
-                className="mt-5 rounded-xl border border-kinora-border px-4 py-2.5 text-sm font-semibold transition hover:bg-kinora-background"
-              >
-                Explore your workspace
-              </button>
             </section>
 
             <section className="mt-10">
               <div className="mb-5 flex items-end justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold">My Agents</h2>
-                  <p className="mt-1 text-sm text-kinora-muted">
+                  <h2 className="text-xl font-bold tracking-tight text-[var(--app-text)]">
+                    My Agents
+                  </h2>
+                  <p className="mt-1 text-sm text-[var(--app-text-muted)]">
                     Your personal messaging assistants.
                   </p>
                 </div>
 
-                <span className="text-sm text-kinora-muted">
-                  {agents.length} agents
+                <span className="text-sm text-[var(--app-text-muted)]">
+                  {agents.length} {agents.length === 1 ? "agent" : "agents"}
                 </span>
               </div>
 
               {isLoadingAgents ? (
-                <p className="text-sm text-kinora-muted">
+                <p className="text-sm text-[var(--app-text-muted)]">
                   Loading your agents...
                 </p>
               ) : (
@@ -778,23 +889,33 @@ function App() {
                 />
               )}
             </section>
-            <section className="mt-10">
-              <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+
+            <section className="mt-12">
+              <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-kinora-text">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">
+                    Your personal circle
+                  </p>
+
+                  <h2 className="mt-2 text-2xl font-bold tracking-tight text-[var(--app-text)]">
                     My Contacts
                   </h2>
-                  <p className="mt-1 text-sm text-kinora-muted">
-                    Manage the people you want to stay connected with.
+
+                  <p className="mt-2 max-w-lg text-sm leading-6 text-[var(--app-text-muted)]">
+                    Keep the important people in your life organised, with their
+                    details and the little things you want to remember.
                   </p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setIsCreatingContact(true)}
-                  className="rounded-xl bg-kinora-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800"
+                  className="app-transition inline-flex items-center justify-center gap-2 self-start rounded-xl bg-[var(--app-primary)] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] dark:text-[#0b1713] sm:self-auto"
                 >
-                  + Add contact
+                  <span aria-hidden="true" className="text-lg leading-none">
+                    +
+                  </span>
+                  Add contact
                 </button>
               </div>
 
@@ -808,9 +929,11 @@ function App() {
               )}
 
               {isLoadingContacts ? (
-                <p className="text-sm text-kinora-muted">
-                  Loading your contacts...
-                </p>
+                <div className="surface rounded-2xl p-8">
+                  <p className="text-sm text-[var(--app-text-muted)]">
+                    Loading your contacts...
+                  </p>
+                </div>
               ) : (
                 <ContactList
                   contacts={contacts}

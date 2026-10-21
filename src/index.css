@@ -1,4 +1,3 @@
-
 @import "tailwindcss";
 
 @theme {
@@ -48,14 +47,16 @@
 :root.dark {
   color-scheme: dark;
 
-  --app-background: #0f1f1a;
-  --app-surface: #142720;
-  --app-surface-secondary: #1b342b;
+  --app-background: #0b1713;
+  --app-surface: #12251d;
+  --app-surface-secondary: #1a3429;
+
   --app-text: #f3f7f4;
-  --app-text-muted: #a3b5ab;
-  --app-border: #294238;
-  --app-primary: #10b981;
-  --app-primary-hover: #34d399;
+  --app-text-muted: #c0d0c6;
+  --app-border: #345344;
+
+  --app-primary: #34d399;
+  --app-primary-hover: #6ee7b7;
   --app-accent: #6ee7b7;
   --app-focus-ring: #6ee7b7;
 }

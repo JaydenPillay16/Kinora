@@ -1,4 +1,3 @@
-
 import type { ScheduledMessage } from "./types";
 
 interface UpcomingMessagesProps {
@@ -32,10 +31,10 @@ function UpcomingMessages({
     <section className="mt-10">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-kinora-text">
+          <h2 className="text-xl font-bold tracking-tight text-[var(--app-text)]">
             Upcoming Messages
           </h2>
-          <p className="mt-1 text-sm text-kinora-muted">
+          <p className="mt-1 text-sm text-[var(--app-text-muted)]">
             Thoughtful messages planned for the people who matter.
           </p>
         </div>
@@ -46,24 +45,24 @@ function UpcomingMessages({
       </div>
 
       {isLoading ? (
-        <div className="rounded-2xl border border-kinora-border bg-white p-8 text-center">
-          <p className="text-sm text-kinora-muted">
+        <div className="rounded-2xl border border-kinora-border bg-[var(--app-surface)] p-8 text-center">
+          <p className="text-sm text-[var(--app-text-muted)]">
             Loading your upcoming messages...
           </p>
         </div>
       ) : messages.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-kinora-border bg-white p-8 text-center">
+        <div className="rounded-2xl border border-dashed border-kinora-border bg-[var(--app-surface)] p-8 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-kinora-mint text-xl text-kinora-primary">
             <span aria-hidden="true">✉</span>
           </div>
 
-          <h3 className="mt-4 font-semibold text-kinora-text">
+          <h3 className="mt-4 font-semibold text-[var(--app-text)]">
             Nothing scheduled just yet
           </h3>
 
-          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-kinora-muted">
-            Once you create an active agent with a future schedule,
-            its planned message will appear here.
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--app-text-muted)]">
+            Once you create an active agent with a future schedule, its planned
+            message will appear here.
           </p>
         </div>
       ) : (
@@ -74,7 +73,7 @@ function UpcomingMessages({
             return (
               <article
                 key={message.id}
-                className="rounded-2xl border border-kinora-border bg-white p-5 transition hover:shadow-sm sm:p-6"
+                className="rounded-2xl border border-kinora-border bg-[var(--app-surface)] p-5 transition hover:shadow-sm sm:p-6"
               >
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0 flex-1">

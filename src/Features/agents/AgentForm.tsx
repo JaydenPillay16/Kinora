@@ -13,9 +13,13 @@ interface AgentFormProps {
 
 function toLocalDateTimeValue(date: Date) {
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-
   return localDate.toISOString().slice(0, 16);
 }
+
+const inputStyles =
+  "w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3 text-[var(--app-text)] outline-none transition placeholder:text-[var(--app-text-muted)] focus:border-[var(--app-focus-ring)] focus:ring-2 focus:ring-[var(--app-focus-ring)]/20";
+
+const labelStyles = "mb-2 block text-sm font-semibold text-[var(--app-text)]";
 
 function AgentForm({
   contacts,
@@ -63,7 +67,7 @@ function AgentForm({
       onUpdate({
         ...initialAgent,
         name: name.trim(),
-        contactId: contactId,
+        contactId,
         contactName: contactName.trim(),
         instructions: instructions.trim(),
         nextScheduledAt: scheduledAt
@@ -77,7 +81,7 @@ function AgentForm({
     const newAgent: Agent = {
       id: crypto.randomUUID(),
       name: name.trim(),
-      contactId: contactId,
+      contactId,
       contactName: contactName.trim(),
       instructions: instructions.trim(),
       messageTemplate: messageTemplate.trim(),
@@ -90,185 +94,240 @@ function AgentForm({
   }
 
   const isEditing = Boolean(initialAgent);
+  const selectedContact = contacts.find((contact) => contact.id === contactId);
 
   return (
-    <div className="rounded-2xl border border-kinora-border bg-white p-6 shadow-sm sm:p-8">
-      <div className="mb-6">
-        <h3 className="text-xl font-bold">
-          {isEditing ? "Edit agent" : "Create a messaging agent"}
-        </h3>
-        <p className="mt-2 text-sm leading-6 text-kinora-muted">
-          Update who your agent is for and how it should prepare messages.
+    <section className="surface p-5 sm:p-8">
+      {/* Form heading */}
+
+      {/* Form heading */}
+      <div className="mb-8 border-b border-[var(--app-border)] pb-6">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-secondary)] text-xl text-[var(--app-accent)]">
+          ✳
+        </div>
+
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">
+          Agent configuration
+        </p>
+
+        <h2 className="mt-2 text-2xl font-bold tracking-tight text-[var(--app-text)] sm:text-3xl">
+          {isEditing ? "Edit your agent" : "Create a messaging agent"}
+        </h2>
+
+        <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--app-text-muted)]">
+          {isEditing
+            ? "Fine-tune your agent's instructions, recipient, and next scheduled message."
+            : "Give your agent a purpose, choose who it's for, and create a message that feels personal."}
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div>
-          <label
-            htmlFor="agent-name"
-            className="mb-2 block text-sm font-medium"
-          >
-            Agent name
-          </label>
-          <input
-            id="agent-name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="e.g. Birthday reminders"
-            required
-            maxLength={60}
-            className="w-full rounded-xl border border-kinora-border px-4 py-3 outline-none focus:border-kinora-accent focus:ring-2 focus:ring-kinora-mint"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="agent-contact"
-            className="mb-2 block text-sm font-medium"
-          >
-            Contact *
-          </label>
-
-          <select
-            id="agent-contact"
-            value={contactId}
-            onChange={(event) => {
-              const selectedId = event.target.value;
-              setContactId(selectedId);
-
-              const selectedContact = contacts.find(
-                (contact) => contact.id === selectedId,
-              );
-
-              setContactName(selectedContact?.name ?? "");
-            }}
-            required
-            className="w-full rounded-xl border border-kinora-border bg-white px-4 py-3 outline-none focus:border-kinora-accent focus:ring-2 focus:ring-kinora-mint"
-          >
-            <option value="">Choose a contact</option>
-
-            {contacts.map((contact) => (
-              <option key={contact.id} value={contact.id}>
-                {contact.name}
-              </option>
-            ))}
-          </select>
-
-          {contacts.length === 0 && (
-            <p className="mt-2 text-sm text-kinora-muted">
-              Add a contact in My Contacts before creating an agent.
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label
-            htmlFor="agent-instructions"
-            className="mb-2 block text-sm font-medium"
-          >
-            Agent instructions
-          </label>
-          <textarea
-            id="agent-instructions"
-            value={instructions}
-            onChange={(event) => setInstructions(event.target.value)}
-            placeholder="Describe the tone, purpose, and style of messages..."
-            required
-            maxLength={1000}
-            rows={4}
-            className="w-full resize-y rounded-xl border border-kinora-border px-4 py-3 outline-none focus:border-kinora-accent focus:ring-2 focus:ring-kinora-mint"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="message-template"
-            className="mb-2 block text-sm font-medium"
-          >
-            Example message
-          </label>
-          <textarea
-            id="message-template"
-            value={messageTemplate}
-            onChange={(event) => setMessageTemplate(event.target.value)}
-            placeholder="Write an example message for this agent..."
-            required
-            maxLength={2000}
-            rows={3}
-            className="w-full resize-y rounded-xl border border-kinora-border px-4 py-3 outline-none focus:border-kinora-accent focus:ring-2 focus:ring-kinora-mint"
-          />
-          <p className="mt-2 text-xs text-kinora-muted">
-            Draft only. Saving an agent will not send a message.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-kinora-border bg-kinora-background p-5">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h4 className="font-semibold text-kinora-text">Message preview</h4>
-            <span className="rounded-full bg-kinora-mint px-3 py-1 text-xs font-semibold text-kinora-primary">
-              Draft
-            </span>
-          </div>
-
-          <div className="max-w-lg rounded-2xl rounded-tl-sm bg-white p-4 shadow-sm">
-            <p className="mb-2 text-xs font-medium text-kinora-muted">
-              To:{" "}
-              {contacts.find((contact) => contact.id === contactId)?.name ??
-                "Choose a contact"}
-            </p>
-
-            <p className="whitespace-pre-wrap text-sm leading-6 text-kinora-text">
-              {messageTemplate.trim() ||
-                "Your example message will appear here as you type."}
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Agent details */}
+        <section className="space-y-5">
+          <div className="border-b border-[var(--app-border)] pb-3">
+            <h3 className="font-semibold text-[var(--app-text)]">
+              Agent details
+            </h3>
+            <p className="mt-1 text-sm text-[var(--app-text-muted)]">
+              Name your agent and choose the person it is for.
             </p>
           </div>
 
-          <p className="mt-3 text-xs text-kinora-muted">
-            Preview only. Nothing is sent from this form.
+          <div>
+            <label htmlFor="agent-name" className={labelStyles}>
+              Agent name
+            </label>
+            <input
+              id="agent-name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="e.g. Birthday reminders"
+              required
+              maxLength={60}
+              className={inputStyles}
+            />
+            <p className="mt-1.5 text-right text-xs text-[var(--app-text-muted)]">
+              {name.length}/60
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="agent-contact" className={labelStyles}>
+              Contact
+            </label>
+            <select
+              id="agent-contact"
+              value={contactId}
+              onChange={(event) => {
+                const selectedId = event.target.value;
+                setContactId(selectedId);
+
+                const selected = contacts.find(
+                  (contact) => contact.id === selectedId,
+                );
+
+                setContactName(selected?.name ?? "");
+              }}
+              required
+              className={inputStyles}
+            >
+              <option value="">Choose a contact</option>
+              {contacts.map((contact) => (
+                <option key={contact.id} value={contact.id}>
+                  {contact.name}
+                </option>
+              ))}
+            </select>
+
+            {contacts.length === 0 && (
+              <p className="mt-2 text-sm text-[var(--app-text-muted)]">
+                Add a contact in My Contacts before creating an agent.
+              </p>
+            )}
+          </div>
+        </section>
+
+        {/* Instructions */}
+        <section className="space-y-5">
+          <div className="border-b border-[var(--app-border)] pb-3">
+            <h3 className="font-semibold text-[var(--app-text)]">
+              Personality and instructions
+            </h3>
+            <p className="mt-1 text-sm text-[var(--app-text-muted)]">
+              Explain the tone and purpose your agent should follow.
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="agent-instructions" className={labelStyles}>
+              Agent instructions
+            </label>
+            <textarea
+              id="agent-instructions"
+              value={instructions}
+              onChange={(event) => setInstructions(event.target.value)}
+              placeholder="e.g. Keep messages warm, genuine, and personal. Remember important milestones and avoid overly formal language."
+              required
+              maxLength={1000}
+              rows={4}
+              className={`${inputStyles} resize-y leading-6`}
+            />
+            <p className="mt-1.5 text-right text-xs text-[var(--app-text-muted)]">
+              {instructions.length}/1000
+            </p>
+          </div>
+        </section>
+
+        {/* Message preview */}
+        <section className="space-y-5">
+          <div className="border-b border-[var(--app-border)] pb-3">
+            <h3 className="font-semibold text-[var(--app-text)]">
+              Example message
+            </h3>
+            <p className="mt-1 text-sm text-[var(--app-text-muted)]">
+              Write an example to see how the message will look.
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="message-template" className={labelStyles}>
+              Message template
+            </label>
+            <textarea
+              id="message-template"
+              value={messageTemplate}
+              onChange={(event) => setMessageTemplate(event.target.value)}
+              placeholder="Write a thoughtful example message..."
+              required
+              maxLength={2000}
+              rows={4}
+              className={`${inputStyles} resize-y leading-6`}
+            />
+            <p className="mt-1.5 text-right text-xs text-[var(--app-text-muted)]">
+              {messageTemplate.length}/2000
+            </p>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-[var(--app-border)]">
+            <div className="flex items-center justify-between gap-3 border-b border-[var(--app-border)] bg-[var(--app-surface-secondary)] px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold text-[var(--app-text)]">
+                  Message preview
+                </p>
+                <p className="mt-0.5 text-xs text-[var(--app-text-muted)]">
+                  {selectedContact
+                    ? `To: ${selectedContact.name}`
+                    : "Choose a contact to get started"}
+                </p>
+              </div>
+
+              <span className="rounded-full border border-[var(--app-border)] px-2.5 py-1 text-xs font-semibold text-[var(--app-text-muted)]">
+                Draft
+              </span>
+            </div>
+
+            <div className="bg-[var(--app-background)] p-4 sm:p-5">
+              <div className="max-w-lg rounded-2xl rounded-tl-sm border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-sm">
+                <p className="whitespace-pre-wrap break-words text-sm leading-6 text-[var(--app-text)]">
+                  {messageTemplate.trim() ||
+                    "Your example message will appear here as you type."}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-xs leading-5 text-[var(--app-text-muted)]">
+            Preview only. Saving this agent will not send a message.
           </p>
-        </div>
+        </section>
 
-        <div>
-          <label
-            htmlFor="agent-schedule"
-            className="mb-2 block text-sm font-medium"
-          >
-            Schedule next message (optional)
-          </label>
+        {/* Schedule */}
+        <section className="space-y-4">
+          <div className="border-b border-[var(--app-border)] pb-3">
+            <h3 className="font-semibold text-[var(--app-text)]">Scheduling</h3>
+            <p className="mt-1 text-sm text-[var(--app-text-muted)]">
+              Optionally choose when the next message should be prepared.
+            </p>
+          </div>
 
-          <input
-            id="agent-schedule"
-            type="datetime-local"
-            value={scheduledAt}
-            onChange={(event) => setScheduledAt(event.target.value)}
-            min={toLocalDateTimeValue(new Date())}
-            className="w-full rounded-xl border border-kinora-border bg-white px-4 py-3 outline-none focus:border-kinora-accent focus:ring-2 focus:ring-kinora-mint"
-          />
+          <div>
+            <label htmlFor="agent-schedule" className={labelStyles}>
+              Next message date and time
+            </label>
+            <input
+              id="agent-schedule"
+              type="datetime-local"
+              value={scheduledAt}
+              onChange={(event) => setScheduledAt(event.target.value)}
+              min={toLocalDateTimeValue(new Date())}
+              className={inputStyles}
+            />
+            <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
+              This sets the next scheduled message. It does not send messages
+              automatically from this form.
+            </p>
+          </div>
+        </section>
 
-          <p className="mt-2 text-sm text-kinora-muted">
-            Choose when this agent's next message should be prepared. Scheduling
-            does not send messages yet.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap justify-end gap-3 border-t border-kinora-border pt-5">
+        {/* Form actions */}
+        <div className="flex flex-wrap justify-end gap-3 border-t border-[var(--app-border)] pt-6">
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-xl border border-kinora-border px-5 py-3 text-sm font-semibold hover:bg-kinora-background"
+            className="app-transition rounded-xl border border-[var(--app-border)] px-5 py-3 text-sm font-semibold text-[var(--app-text)] hover:bg-[var(--app-surface-secondary)]"
           >
             Cancel
           </button>
 
           <button
             type="submit"
-            className="rounded-xl bg-kinora-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800"
+            className="app-transition rounded-xl bg-[var(--app-primary)] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] dark:text-[#0b1713]"
           >
             {isEditing ? "Save changes" : "Create agent"}
           </button>
         </div>
       </form>
-    </div>
+    </section>
   );
 }
 
