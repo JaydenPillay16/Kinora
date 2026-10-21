@@ -1,4 +1,3 @@
-
 import {
   Activity,
   Bot,
@@ -50,9 +49,13 @@ const navigationItems: NavigationItem[] = [
   },
 ];
 
-function Sidebar() {
+interface SidebarProps {
+  onNavigate?: () => void;
+}
+
+function Sidebar({ onNavigate }: SidebarProps) {
   return (
-    <aside className="app-transition flex w-64 shrink-0 flex-col border-r border-[var(--app-border)] bg-[var(--app-surface)] p-4 sm:p-5">
+    <aside className="app-transition flex min-h-screen w-64 shrink-0 flex-col border-r border-[var(--app-border)] bg-[var(--app-surface)] p-4 sm:p-5">
       {/* Brand */}
       <a
         href="#"
@@ -98,17 +101,20 @@ function Sidebar() {
           const isActive = index === 0;
 
           return (
-            <a
-              key={item.label}
-              href="#"
-              aria-current={isActive ? "page" : undefined}
-              title={item.description}
-              className={`app-transition group relative flex items-center gap-3 overflow-hidden rounded-xl px-3 py-3 text-sm ${
-                isActive
-                  ? "bg-[var(--app-surface-secondary)] font-semibold text-[var(--app-primary)]"
-                  : "font-medium text-[var(--app-text-muted)] hover:bg-[var(--app-surface-secondary)] hover:text-[var(--app-text)]"
-              }`}
-            >
+            
+<a
+  key={item.label}
+  href="#"
+  onClick={onNavigate}
+  aria-current={isActive ? "page" : undefined}
+  title={item.description}
+  className={`app-transition group relative flex items-center gap-3 overflow-hidden rounded-xl px-3 py-3 text-sm ${
+    isActive
+      ? "bg-[var(--app-surface-secondary)] font-semibold text-[var(--app-primary)]"
+      : "font-medium text-[var(--app-text-muted)] hover:bg-[var(--app-surface-secondary)] hover:text-[var(--app-text)]"
+  }`}
+>
+
               {isActive && (
                 <span
                   aria-hidden="true"

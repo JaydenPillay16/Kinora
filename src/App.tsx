@@ -1,41 +1,92 @@
+import { useEffect, useState } from "react";
+import type { Session } from "@supabase/supabase-js";
+import {
+  Bot,
+  CalendarClock,
+  ChevronRight,
+  Heart,
+  Send,
+  Sparkles,
+  UsersRound,
+} from "lucide-react";
+
 import Sidebar from "./Components/layout/Sidebar";
 import Header from "./Components/layout/Header";
 import AgentList from "./Features/agents/AgentList";
 import type { Agent } from "./Features/agents/types";
-import { useEffect, useState } from "react";
 import AgentForm from "./Features/agents/AgentForm";
 import ContactForm from "./Features/contacts/ContactForm";
 import ContactList from "./Features/contacts/ContactList";
 import type { Contact } from "./Features/contacts/types";
 import AuthForm from "./Features/auth/AuthForm";
 import { supabase } from "./lib/supabaseClient";
-import type { Session } from "@supabase/supabase-js";
 import type { ScheduledMessage } from "./Features/scheduling/types";
 import { syncScheduledMessage } from "./Features/scheduling/schedulingService";
 import UpcomingMessages from "./Features/scheduling/UpcomingMessages";
-import KinoraLogo from "./Components/branding/KinoraLogo";
-import ThemeToggle from "./Components/branding/ThemeToggle";
-
-import {
-  Activity,
-  Bot,
-  CalendarClock,
-  CheckCircle2,
-  ChevronRight,
-  Clock3,
-  Heart,
-  MessageCircle,
-  Plus,
-  Send,
-  Sparkles,
-  UsersRound,
-} from "lucide-react";
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+
   const [scheduledMessageCount, setScheduledMessageCount] = useState(0);
   const [sentMessageCount, setSentMessageCount] = useState(0);
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const [scheduledMessages, setScheduledMessages] = useState<
+    ScheduledMessage[]
+  >([]);
+  const [isLoadingScheduledMessages, setIsLoadingScheduledMessages] =
+    useState(true);
+
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [isLoadingAgents, setIsLoadingAgents] = useState(true);
+  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
+  const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
+
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [isLoadingContacts, setIsLoadingContacts] = useState(true);
+  const [isCreatingContact, setIsCreatingContact] = useState(false);
+
+  // --------------------------------------------------
+  // AUTHENTICATION
+  // --------------------------------------------------
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadSession() {
+      const { data, error } = await supabase.auth.getSession();
+
+      if (!isMounted) return;
+
+      if (error) {
+        console.error("Could not load session:", error.message);
+      }
+
+      setSession(data.session);
+      setIsAuthLoading(false);
+    }
+
+    void loadSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      setIsAuthLoading(false);
+      setIsMobileMenuOpen(false);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // --------------------------------------------------
+  // SCHEDULED MESSAGE STATISTICS
+  // --------------------------------------------------
 
   async function refreshScheduledMessageCount() {
     if (!session) return;
@@ -57,14 +108,12 @@ function App() {
     setScheduledMessageCount(count ?? 0);
   }
 
-  const [scheduledMessages, setScheduledMessages] = useState<
-    ScheduledMessage[]
-  >([]);
-  const [isLoadingScheduledMessages, setIsLoadingScheduledMessages] =
-    useState(true);
-
   useEffect(() => {
-    if (!session) return;
+    if (!session) {
+      setScheduledMessageCount(0);
+      setSentMessageCount(0);
+      return;
+    }
 
     let isMounted = true;
 
@@ -111,39 +160,16 @@ function App() {
     };
   }, [session]);
 
+  // --------------------------------------------------
+  // CONTACTS
+  // --------------------------------------------------
+
   useEffect(() => {
-    let isMounted = true;
-
-    async function loadSession() {
-      const { data, error } = await supabase.auth.getSession();
-
-      if (!isMounted) return;
-
-      if (error) {
-        console.error("Could not load session:", error.message);
-      }
-
-      setSession(data.session);
-      setIsAuthLoading(false);
+    if (!session) {
+      setContacts([]);
+      setIsLoadingContacts(false);
+      return;
     }
-
-    void loadSession();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-      setIsAuthLoading(false);
-    });
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!session) return;
 
     let isMounted = true;
 
@@ -184,386 +210,6 @@ function App() {
       isMounted = false;
     };
   }, [session]);
-
-  const [agents, setAgents] = useState<Agent[]>([]);
-  const [isLoadingAgents, setIsLoadingAgents] = useState(true);
-  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
-  const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
-
-  const [contacts, setContacts] = useState<Contact[]>([]);
-  const [isLoadingContacts, setIsLoadingContacts] = useState(true);
-
-  const [isCreatingContact, setIsCreatingContact] = useState(false);
-
-  async function handleCreateAgent(agent: Agent) {
-    if (!session) return;
-
-    const { data, error } = await supabase
-      .from("agents")
-      .insert({
-        user_id: session.user.id,
-        name: agent.name,
-        contact_id: agent.contactId || null,
-        instructions: agent.instructions,
-        message_template: agent.messageTemplate,
-        status: agent.status,
-        next_scheduled_at: agent.nextScheduledAt || null,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Failed to create agent:", error.message);
-      window.alert("Could not save agent. Please try again.");
-      return;
-    }
-
-    const savedAgent: Agent = {
-      id: data.id,
-      name: data.name,
-      contactId: data.contact_id ?? "",
-      contactName:
-        contacts.find((contact) => contact.id === data.contact_id)?.name ?? "",
-      instructions: data.instructions,
-      messageTemplate: data.message_template,
-      status: data.status as Agent["status"],
-      nextScheduledAt: data.next_scheduled_at,
-      createdAt: data.created_at,
-    };
-
-    try {
-      await syncScheduledMessage({
-        userId: session.user.id,
-        agent: savedAgent,
-      });
-      await refreshScheduledMessageCount();
-    } catch (error) {
-      console.error("Scheduling failed:", error);
-
-      window.alert(
-        "The agent was saved, but its scheduled message could not be created. Please try again.",
-      );
-    }
-
-    setAgents((currentAgents) => [savedAgent, ...currentAgents]);
-    setIsCreatingAgent(false);
-  }
-
-  useEffect(() => {
-    if (!session) return;
-
-    let isMounted = true;
-
-    async function loadAgents() {
-      setIsLoadingAgents(true);
-
-      const { data, error } = await supabase
-        .from("agents")
-        .select("*")
-        .eq("user_id", session!.user.id)
-        .order("created_at", { ascending: false });
-
-      if (!isMounted) return;
-
-      if (error) {
-        console.error("Failed to load agents:", error.message);
-        setIsLoadingAgents(false);
-        return;
-      }
-
-      const loadedAgents: Agent[] = (data ?? []).map((row) => {
-        const linkedContact = contacts.find(
-          (contact) => contact.id === row.contact_id,
-        );
-
-        return {
-          id: row.id,
-          name: row.name,
-          contactId: row.contact_id ?? "",
-          contactName: linkedContact?.name ?? "",
-          instructions: row.instructions,
-          messageTemplate: row.message_template,
-          status: row.status as Agent["status"],
-          nextScheduledAt: row.next_scheduled_at,
-          createdAt: row.created_at,
-        };
-      });
-
-      setAgents(loadedAgents);
-      setIsLoadingAgents(false);
-    }
-
-    void loadAgents();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [session, contacts]);
-
-  async function handleUpdateAgent(updatedAgent: Agent) {
-    if (!session) return;
-
-    const { data, error } = await supabase
-      .from("agents")
-      .update({
-        name: updatedAgent.name,
-        contact_id: updatedAgent.contactId || null,
-        instructions: updatedAgent.instructions,
-        message_template: updatedAgent.messageTemplate,
-        status: updatedAgent.status,
-        next_scheduled_at: updatedAgent.nextScheduledAt || null,
-      })
-      .eq("id", updatedAgent.id)
-      .eq("user_id", session.user.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Failed to update agent:", error.message);
-      window.alert("Could not update agent. Please try again.");
-      return;
-    }
-
-    const savedAgent: Agent = {
-      id: data.id,
-      name: data.name,
-      contactId: data.contact_id ?? "",
-      contactName:
-        contacts.find((contact) => contact.id === data.contact_id)?.name ?? "",
-      instructions: data.instructions,
-      messageTemplate: data.message_template,
-      status: data.status as Agent["status"],
-      nextScheduledAt: data.next_scheduled_at,
-      createdAt: data.created_at,
-    };
-
-    try {
-      await syncScheduledMessage({
-        userId: session.user.id,
-        agent: savedAgent,
-      });
-      await refreshScheduledMessageCount();
-    } catch (error) {
-      console.error("Scheduling failed:", error);
-
-      window.alert(
-        "The agent was saved, but its scheduled message could not be created. Please try again.",
-      );
-    }
-
-    setAgents((currentAgents) => {
-      const alreadyExists = currentAgents.some(
-        (agent) => agent.id === savedAgent.id,
-      );
-
-      if (!alreadyExists) {
-        return [savedAgent, ...currentAgents];
-      }
-
-      return currentAgents.map((agent) =>
-        agent.id === savedAgent.id ? savedAgent : agent,
-      );
-    });
-
-    setIsCreatingAgent(false);
-    setEditingAgent(null);
-  }
-
-  useEffect(() => {
-    if (!session) return;
-
-    let isMounted = true;
-
-    async function loadScheduledMessages() {
-      setIsLoadingScheduledMessages(true);
-
-      const { data, error } = await supabase
-        .from("scheduled_messages")
-        .select(
-          `
-        id,
-        agent_id,
-        contact_id,
-        message_text,
-        scheduled_at,
-        status,
-        created_at
-      `,
-        )
-        .eq("user_id", session!.user.id)
-        .eq("status", "pending")
-        .order("scheduled_at", { ascending: true });
-
-      if (!isMounted) return;
-
-      if (error) {
-        console.error("Failed to load scheduled messages:", error.message);
-        setIsLoadingScheduledMessages(false);
-        return;
-      }
-
-      const loadedMessages: ScheduledMessage[] = (data ?? []).map((row) => ({
-        id: row.id,
-        agentId: row.agent_id,
-        contactId: row.contact_id,
-        contactName:
-          contacts.find((contact) => contact.id === row.contact_id)?.name ??
-          "Unknown contact",
-        agentName:
-          agents.find((agent) => agent.id === row.agent_id)?.name ??
-          "Unknown agent",
-        messageText: row.message_text,
-        scheduledAt: row.scheduled_at,
-        status: row.status as ScheduledMessage["status"],
-        createdAt: row.created_at,
-      }));
-
-      setScheduledMessages(loadedMessages);
-      setIsLoadingScheduledMessages(false);
-    }
-
-    void loadScheduledMessages();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [session, contacts, agents]);
-
-  async function handleCancelScheduledMessage(messageId: string) {
-    if (!session) return;
-
-    const confirmed = window.confirm(
-      "Are you sure you want to cancel this scheduled message?",
-    );
-
-    if (!confirmed) return;
-
-    const { error } = await supabase
-      .from("scheduled_messages")
-      .update({ status: "cancelled" })
-      .eq("id", messageId)
-      .eq("user_id", session.user.id)
-      .eq("status", "pending");
-
-    if (error) {
-      console.error("Failed to cancel scheduled message:", error.message);
-      window.alert("Could not cancel the message. Please try again.");
-      return;
-    }
-
-    setScheduledMessages((currentMessages) =>
-      currentMessages.filter((message) => message.id !== messageId),
-    );
-
-    await refreshScheduledMessageCount();
-  }
-
-  async function handleToggleAgentStatus(agentId: string) {
-    if (!session) return;
-
-    const agent = agents.find((item) => item.id === agentId);
-
-    if (!agent) return;
-
-    const newStatus = agent.status === "active" ? "paused" : "active";
-
-    // First, save the new status in Supabase.
-    const { error } = await supabase
-      .from("agents")
-      .update({ status: newStatus })
-      .eq("id", agentId)
-      .eq("user_id", session.user.id);
-
-    if (error) {
-      console.error("Failed to change agent status:", error.message);
-      window.alert("Could not update agent status.");
-      return;
-    }
-
-    // Create an updated version of the agent.
-    const updatedAgent: Agent = {
-      ...agent,
-      status: newStatus,
-    };
-
-    // Synchronise the scheduled message with the new status.
-    try {
-      await syncScheduledMessage({
-        userId: session.user.id,
-        agent: updatedAgent,
-      });
-      await refreshScheduledMessageCount();
-    } catch (error) {
-      console.error("Failed to sync scheduled message:", error);
-
-      window.alert(
-        "The agent status was updated, but its scheduled message could not be synchronised. Please check the schedule before continuing.",
-      );
-    }
-
-    // Update the interface.
-    setAgents((currentAgents) =>
-      currentAgents.map((item) => (item.id === agentId ? updatedAgent : item)),
-    );
-  }
-
-  async function handleDeleteAgent(agentId: string) {
-    if (!session) return;
-
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this agent? Any pending scheduled message will also be cancelled.",
-    );
-
-    if (!confirmed) return;
-
-    // First, cancel any pending messages belonging to this agent.
-    const { error: cancelError } = await supabase
-      .from("scheduled_messages")
-      .update({ status: "cancelled" })
-      .eq("user_id", session.user.id)
-      .eq("agent_id", agentId)
-      .eq("status", "pending");
-
-    if (cancelError) {
-      console.error(
-        "Failed to cancel the agent's scheduled messages:",
-        cancelError.message,
-      );
-
-      window.alert(
-        "Could not cancel the agent's scheduled messages. The agent was not deleted.",
-      );
-      return;
-    }
-
-    // Next, delete the agent from Supabase.
-    const { error: deleteError } = await supabase
-      .from("agents")
-      .delete()
-      .eq("id", agentId)
-      .eq("user_id", session.user.id);
-
-    if (deleteError) {
-      console.error("Failed to delete agent:", deleteError.message);
-
-      window.alert(
-        "The scheduled message was cancelled, but the agent could not be deleted. Please try again.",
-      );
-
-      return;
-    }
-
-    // Update the interface after successful database operations.
-    setAgents((currentAgents) =>
-      currentAgents.filter((agent) => agent.id !== agentId),
-    );
-
-    setScheduledMessages((currentMessages) =>
-      currentMessages.filter((message) => message.agentId !== agentId),
-    );
-
-    await refreshScheduledMessageCount();
-  }
 
   async function handleCreateContact(contact: Contact) {
     if (!session) return;
@@ -626,6 +272,396 @@ function App() {
     );
   }
 
+  // --------------------------------------------------
+  // AGENTS
+  // --------------------------------------------------
+
+  useEffect(() => {
+    if (!session) {
+      setAgents([]);
+      setIsLoadingAgents(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    async function loadAgents() {
+      setIsLoadingAgents(true);
+
+      const { data, error } = await supabase
+        .from("agents")
+        .select("*")
+        .eq("user_id", session!.user.id)
+        .order("created_at", { ascending: false });
+
+      if (!isMounted) return;
+
+      if (error) {
+        console.error("Failed to load agents:", error.message);
+        setIsLoadingAgents(false);
+        return;
+      }
+
+      const loadedAgents: Agent[] = (data ?? []).map((row) => {
+        const linkedContact = contacts.find(
+          (contact) => contact.id === row.contact_id,
+        );
+
+        return {
+          id: row.id,
+          name: row.name,
+          contactId: row.contact_id ?? "",
+          contactName: linkedContact?.name ?? "",
+          instructions: row.instructions,
+          messageTemplate: row.message_template,
+          status: row.status as Agent["status"],
+          nextScheduledAt: row.next_scheduled_at,
+          createdAt: row.created_at,
+        };
+      });
+
+      setAgents(loadedAgents);
+      setIsLoadingAgents(false);
+    }
+
+    void loadAgents();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [session, contacts]);
+
+  async function handleCreateAgent(agent: Agent) {
+    if (!session) return;
+
+    const { data, error } = await supabase
+      .from("agents")
+      .insert({
+        user_id: session.user.id,
+        name: agent.name,
+        contact_id: agent.contactId || null,
+        instructions: agent.instructions,
+        message_template: agent.messageTemplate,
+        status: agent.status,
+        next_scheduled_at: agent.nextScheduledAt || null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Failed to create agent:", error.message);
+      window.alert("Could not save agent. Please try again.");
+      return;
+    }
+
+    const savedAgent: Agent = {
+      id: data.id,
+      name: data.name,
+      contactId: data.contact_id ?? "",
+      contactName:
+        contacts.find((contact) => contact.id === data.contact_id)?.name ?? "",
+      instructions: data.instructions,
+      messageTemplate: data.message_template,
+      status: data.status as Agent["status"],
+      nextScheduledAt: data.next_scheduled_at,
+      createdAt: data.created_at,
+    };
+
+    try {
+      await syncScheduledMessage({
+        userId: session.user.id,
+        agent: savedAgent,
+      });
+
+      await refreshScheduledMessageCount();
+    } catch (error) {
+      console.error("Scheduling failed:", error);
+
+      window.alert(
+        "The agent was saved, but its scheduled message could not be created. Please try again.",
+      );
+    }
+
+    setAgents((currentAgents) => [savedAgent, ...currentAgents]);
+
+    setIsCreatingAgent(false);
+  }
+
+  async function handleUpdateAgent(updatedAgent: Agent) {
+    if (!session) return;
+
+    const { data, error } = await supabase
+      .from("agents")
+      .update({
+        name: updatedAgent.name,
+        contact_id: updatedAgent.contactId || null,
+        instructions: updatedAgent.instructions,
+        message_template: updatedAgent.messageTemplate,
+        status: updatedAgent.status,
+        next_scheduled_at: updatedAgent.nextScheduledAt || null,
+      })
+      .eq("id", updatedAgent.id)
+      .eq("user_id", session.user.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Failed to update agent:", error.message);
+      window.alert("Could not update agent. Please try again.");
+      return;
+    }
+
+    const savedAgent: Agent = {
+      id: data.id,
+      name: data.name,
+      contactId: data.contact_id ?? "",
+      contactName:
+        contacts.find((contact) => contact.id === data.contact_id)?.name ?? "",
+      instructions: data.instructions,
+      messageTemplate: data.message_template,
+      status: data.status as Agent["status"],
+      nextScheduledAt: data.next_scheduled_at,
+      createdAt: data.created_at,
+    };
+
+    try {
+      await syncScheduledMessage({
+        userId: session.user.id,
+        agent: savedAgent,
+      });
+
+      await refreshScheduledMessageCount();
+    } catch (error) {
+      console.error("Scheduling failed:", error);
+
+      window.alert(
+        "The agent was saved, but its scheduled message could not be created. Please try again.",
+      );
+    }
+
+    setAgents((currentAgents) => {
+      const alreadyExists = currentAgents.some(
+        (agent) => agent.id === savedAgent.id,
+      );
+
+      if (!alreadyExists) {
+        return [savedAgent, ...currentAgents];
+      }
+
+      return currentAgents.map((agent) =>
+        agent.id === savedAgent.id ? savedAgent : agent,
+      );
+    });
+
+    setIsCreatingAgent(false);
+    setEditingAgent(null);
+  }
+
+  async function handleToggleAgentStatus(agentId: string) {
+    if (!session) return;
+
+    const agent = agents.find((item) => item.id === agentId);
+
+    if (!agent) return;
+
+    const newStatus = agent.status === "active" ? "paused" : "active";
+
+    const { error } = await supabase
+      .from("agents")
+      .update({ status: newStatus })
+      .eq("id", agentId)
+      .eq("user_id", session.user.id);
+
+    if (error) {
+      console.error("Failed to change agent status:", error.message);
+      window.alert("Could not update agent status.");
+      return;
+    }
+
+    const updatedAgent: Agent = {
+      ...agent,
+      status: newStatus,
+    };
+
+    try {
+      await syncScheduledMessage({
+        userId: session.user.id,
+        agent: updatedAgent,
+      });
+
+      await refreshScheduledMessageCount();
+    } catch (error) {
+      console.error("Failed to sync scheduled message:", error);
+
+      window.alert(
+        "The agent status was updated, but its scheduled message could not be synchronised. Please check the schedule before continuing.",
+      );
+    }
+
+    setAgents((currentAgents) =>
+      currentAgents.map((item) => (item.id === agentId ? updatedAgent : item)),
+    );
+  }
+
+  async function handleDeleteAgent(agentId: string) {
+    if (!session) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this agent? Any pending scheduled message will also be cancelled.",
+    );
+
+    if (!confirmed) return;
+
+    const { error: cancelError } = await supabase
+      .from("scheduled_messages")
+      .update({ status: "cancelled" })
+      .eq("user_id", session.user.id)
+      .eq("agent_id", agentId)
+      .eq("status", "pending");
+
+    if (cancelError) {
+      console.error(
+        "Failed to cancel the agent's scheduled messages:",
+        cancelError.message,
+      );
+
+      window.alert(
+        "Could not cancel the agent's scheduled messages. The agent was not deleted.",
+      );
+
+      return;
+    }
+
+    const { error: deleteError } = await supabase
+      .from("agents")
+      .delete()
+      .eq("id", agentId)
+      .eq("user_id", session.user.id);
+
+    if (deleteError) {
+      console.error("Failed to delete agent:", deleteError.message);
+
+      window.alert(
+        "The scheduled message was cancelled, but the agent could not be deleted. Please try again.",
+      );
+
+      return;
+    }
+
+    setAgents((currentAgents) =>
+      currentAgents.filter((agent) => agent.id !== agentId),
+    );
+
+    setScheduledMessages((currentMessages) =>
+      currentMessages.filter((message) => message.agentId !== agentId),
+    );
+
+    await refreshScheduledMessageCount();
+  }
+
+  // --------------------------------------------------
+  // SCHEDULED MESSAGES
+  // --------------------------------------------------
+
+  useEffect(() => {
+    if (!session) {
+      setScheduledMessages([]);
+      setIsLoadingScheduledMessages(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    async function loadScheduledMessages() {
+      setIsLoadingScheduledMessages(true);
+
+      const { data, error } = await supabase
+        .from("scheduled_messages")
+        .select(
+          `
+            id,
+            agent_id,
+            contact_id,
+            message_text,
+            scheduled_at,
+            status,
+            created_at
+          `,
+        )
+        .eq("user_id", session!.user.id)
+        .eq("status", "pending")
+        .order("scheduled_at", { ascending: true });
+
+      if (!isMounted) return;
+
+      if (error) {
+        console.error("Failed to load scheduled messages:", error.message);
+
+        setIsLoadingScheduledMessages(false);
+        return;
+      }
+
+      const loadedMessages: ScheduledMessage[] = (data ?? []).map((row) => ({
+        id: row.id,
+        agentId: row.agent_id,
+        contactId: row.contact_id,
+        contactName:
+          contacts.find((contact) => contact.id === row.contact_id)?.name ??
+          "Unknown contact",
+        agentName:
+          agents.find((agent) => agent.id === row.agent_id)?.name ??
+          "Unknown agent",
+        messageText: row.message_text,
+        scheduledAt: row.scheduled_at,
+        status: row.status as ScheduledMessage["status"],
+        createdAt: row.created_at,
+      }));
+
+      setScheduledMessages(loadedMessages);
+      setIsLoadingScheduledMessages(false);
+    }
+
+    void loadScheduledMessages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [session, contacts, agents]);
+
+  async function handleCancelScheduledMessage(messageId: string) {
+    if (!session) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to cancel this scheduled message?",
+    );
+
+    if (!confirmed) return;
+
+    const { error } = await supabase
+      .from("scheduled_messages")
+      .update({ status: "cancelled" })
+      .eq("id", messageId)
+      .eq("user_id", session.user.id)
+      .eq("status", "pending");
+
+    if (error) {
+      console.error("Failed to cancel scheduled message:", error.message);
+
+      window.alert("Could not cancel the message. Please try again.");
+      return;
+    }
+
+    setScheduledMessages((currentMessages) =>
+      currentMessages.filter((message) => message.id !== messageId),
+    );
+
+    await refreshScheduledMessageCount();
+  }
+
+  // --------------------------------------------------
+  // LOADING AND AUTHENTICATION SCREENS
+  // --------------------------------------------------
+
   if (isAuthLoading) {
     return (
       <div className="app-transition flex min-h-screen items-center justify-center bg-[var(--app-background)] text-[var(--app-text)]">
@@ -638,20 +674,43 @@ function App() {
     return <AuthForm />;
   }
 
+  // --------------------------------------------------
+  // DASHBOARD
+  // --------------------------------------------------
+
   return (
     <div className="app-transition flex min-h-screen bg-[var(--app-background)] text-[var(--app-text)]">
-      <Sidebar />
+      {/* Mobile navigation backdrop and drawer */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden">
+          <button
+            type="button"
+            aria-label="Close navigation menu"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="absolute inset-0 h-full w-full bg-black/40 backdrop-blur-[2px]"
+          />
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center justify-between border-b border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-3 sm:px-8">
-          <KinoraLogo size={40} showTagline />
-          <ThemeToggle />
+          <div className="app-transition absolute inset-y-0 left-0 max-w-[85vw] overflow-y-auto shadow-2xl">
+            <Sidebar onNavigate={() => setIsMobileMenuOpen(false)} />
+          </div>
         </div>
+      )}
 
-        <Header />
+      {/* Desktop sidebar */}
+      <div className="hidden shrink-0 lg:block">
+        <Sidebar />
+      </div>
 
-        <main className="flex-1 px-5 py-7 sm:px-8 sm:py-9 lg:px-10">
+      {/* Main application area */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Header
+          isMobileMenuOpen={isMobileMenuOpen}
+          onMenuClick={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
+        />
+
+        <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-9">
           <div className="mx-auto max-w-[1440px]">
+            {/* Date */}
             <p className="text-sm font-semibold text-[var(--app-accent)]">
               {new Date().toLocaleDateString("en-ZA", {
                 weekday: "long",
@@ -661,6 +720,7 @@ function App() {
               })}
             </p>
 
+            {/* Welcome section */}
             <div className="mt-5 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">
                 <p className="text-sm font-medium text-[var(--app-accent)]">
@@ -691,7 +751,7 @@ function App() {
                       console.error("Sign out failed:", error.message);
                     }
                   }}
-                  className="rounded-xl border border-[var(--app-border)] px-4 py-3 text-sm font-semibold text-[var(--app-text-muted)] transition hover:bg-[var(--app-surface-secondary)] hover:text-[var(--app-text)]"
+                  className="rounded-xl border border-[var(--app-border)] px-4 py-3 text-sm font-semibold text-[var(--app-text-muted)] transition hover:bg-[var(--app-surface-secondary)] hover:text-[var(--app-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
                 >
                   Sign out
                 </button>
@@ -712,6 +772,7 @@ function App() {
               </div>
             </div>
 
+            {/* Agent creation and editing form */}
             {(isCreatingAgent || editingAgent) && (
               <section className="mt-8">
                 <AgentForm
@@ -728,6 +789,7 @@ function App() {
               </section>
             )}
 
+            {/* Dashboard statistics */}
             <div className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {[
                 {
@@ -793,6 +855,7 @@ function App() {
                       <span
                         className={`h-1.5 w-1.5 rounded-full ${stat.iconBg.replace("/10", "")}`}
                       />
+
                       <p className="text-xs leading-5 text-[var(--app-text-muted)]">
                         {stat.detail}
                       </p>
@@ -807,6 +870,7 @@ function App() {
               })}
             </div>
 
+            {/* Welcome card */}
             <section className="surface relative mt-6 overflow-hidden rounded-3xl border border-[var(--app-border)] p-6 sm:p-8 lg:p-9">
               <div
                 aria-hidden="true"
@@ -817,6 +881,7 @@ function App() {
                 <div className="max-w-2xl">
                   <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--app-primary)] text-white shadow-lg shadow-emerald-950/10 dark:text-[#0b1713]">
                     <Heart size={25} strokeWidth={1.8} />
+
                     <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[var(--app-surface)] bg-[var(--app-accent)] text-white">
                       <Sparkles size={10} strokeWidth={2.5} />
                     </span>
@@ -852,17 +917,20 @@ function App() {
                   {agents.length === 0
                     ? "Create your first agent"
                     : "Create an agent"}
+
                   <ChevronRight size={17} aria-hidden="true" />
                 </button>
               </div>
             </section>
 
+            {/* My agents */}
             <section className="mt-10">
               <div className="mb-5 flex items-end justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-bold tracking-tight text-[var(--app-text)]">
                     My Agents
                   </h2>
+
                   <p className="mt-1 text-sm text-[var(--app-text-muted)]">
                     Your personal messaging assistants.
                   </p>
@@ -890,6 +958,7 @@ function App() {
               )}
             </section>
 
+            {/* My contacts */}
             <section className="mt-12">
               <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
@@ -942,6 +1011,7 @@ function App() {
               )}
             </section>
 
+            {/* Upcoming scheduled messages */}
             <UpcomingMessages
               messages={scheduledMessages}
               isLoading={isLoadingScheduledMessages}
