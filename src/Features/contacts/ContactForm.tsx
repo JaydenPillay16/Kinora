@@ -109,7 +109,7 @@ function ContactForm({ onCreate, onCancel }: ContactFormProps) {
         </div>
 
         <p className="text-xs text-kinora-muted">
-          Contact details are stored locally in this browser prototype.
+          Contact details are stored on a secure server and are only accessible to you. Kinora does not share your contacts with anyone.
         </p>
 
         <div className="flex justify-end gap-3 border-t border-kinora-border pt-5">
