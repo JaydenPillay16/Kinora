@@ -44,19 +44,8 @@ export default function KinoraLogo({
             </linearGradient>
           </defs>
 
-          <path
-            d="M14 9V39"
-            stroke={`url(#${gradientId})`}
-            strokeWidth="7.5"
-            strokeLinecap="round"
-          />
-          <path
-            d="M35 10L15 24L35 38"
-            stroke={`url(#${gradientId})`}
-            strokeWidth="7.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          <path d="M24 23C20 17 14 14 9 17 2 21 5 30 11 35l10 8-1-7" stroke={`url(#${gradientId})`} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M24 23c4-6 10-9 15-6 7 4 4 13-2 18l-10 8 1-7" stroke={`url(#${gradientId})`} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
 
