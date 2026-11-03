@@ -34,18 +34,8 @@ function ContactCard({ contact, onDelete }: ContactCardProps) {
     relationshipStyles[relationship] ??
     "border-[var(--app-border)] bg-[var(--app-surface-secondary)] text-[var(--app-text-muted)]";
 
-  function handleDelete() {
-    const confirmed = window.confirm(
-      `Delete ${contact.name} from your contacts? This action cannot be undone here.`,
-    );
-
-    if (confirmed) {
-      onDelete(contact.id);
-    }
-  }
-
   return (
-    <article className="surface group flex h-full flex-col overflow-hidden rounded-2xl transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+    <article className="contact-card surface group flex h-full flex-col overflow-hidden rounded-[22px] transition duration-300 hover:-translate-y-1 hover:shadow-lg">
       {/* Contact profile */}
       <div className="flex-1 p-5 sm:p-6">
         <div className="flex items-start gap-4">
@@ -181,7 +171,7 @@ function ContactCard({ contact, onDelete }: ContactCardProps) {
 
         <button
           type="button"
-          onClick={handleDelete}
+          onClick={() => onDelete(contact.id)}
           aria-label={`Delete ${contact.name}`}
           className="app-transition inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[var(--app-text-muted)] hover:bg-red-500/10 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:hover:text-red-400"
         >

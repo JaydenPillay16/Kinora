@@ -2,13 +2,14 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import type { Agent } from "./types";
 import type { Contact } from "../contacts/types";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 
 interface AgentFormProps {
   contacts: Contact[];
-  onCreate: (agent: Agent) => void;
+  onCreate: (agent: Agent) => void | Promise<void>;
   onCancel: () => void;
   initialAgent?: Agent;
-  onUpdate?: (agent: Agent) => void;
+  onUpdate?: (agent: Agent) => void | Promise<void>;
 }
 
 function toLocalDateTimeValue(date: Date) {
@@ -44,14 +45,18 @@ function AgentForm({
       ? toLocalDateTimeValue(new Date(initialAgent.nextScheduledAt))
       : "",
   );
+  const [minimumScheduledAt] = useState(() => toLocalDateTimeValue(new Date()));
+  const [isSaving, setIsSaving] = useState(false);
+  const [scheduleError, setScheduleError] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (scheduledAt && new Date(scheduledAt).getTime() <= Date.now()) {
-      window.alert("Please choose a future date and time.");
+      setScheduleError("Choose a date and time in the future.");
       return;
     }
+    setScheduleError("");
 
     if (
       !name.trim() ||
@@ -63,34 +68,36 @@ function AgentForm({
       return;
     }
 
-    if (initialAgent && onUpdate) {
-      onUpdate({
-        ...initialAgent,
+    setIsSaving(true);
+    try {
+      if (initialAgent && onUpdate) {
+        await onUpdate({
+          ...initialAgent,
+          name: name.trim(),
+          contactId,
+          contactName: contactName.trim(),
+          instructions: instructions.trim(),
+          nextScheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
+          messageTemplate: messageTemplate.trim(),
+        });
+        return;
+      }
+
+      const newAgent: Agent = {
+        id: crypto.randomUUID(),
         name: name.trim(),
         contactId,
         contactName: contactName.trim(),
         instructions: instructions.trim(),
-        nextScheduledAt: scheduledAt
-          ? new Date(scheduledAt).toISOString()
-          : null,
         messageTemplate: messageTemplate.trim(),
-      });
-      return;
+        status: "draft",
+        nextScheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
+        createdAt: new Date().toISOString(),
+      };
+      await onCreate(newAgent);
+    } finally {
+      setIsSaving(false);
     }
-
-    const newAgent: Agent = {
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      contactId,
-      contactName: contactName.trim(),
-      instructions: instructions.trim(),
-      messageTemplate: messageTemplate.trim(),
-      status: "draft",
-      nextScheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
-      createdAt: new Date().toISOString(),
-    };
-
-    onCreate(newAgent);
   }
 
   const isEditing = Boolean(initialAgent);
@@ -298,10 +305,14 @@ function AgentForm({
               id="agent-schedule"
               type="datetime-local"
               value={scheduledAt}
-              onChange={(event) => setScheduledAt(event.target.value)}
-              min={toLocalDateTimeValue(new Date())}
+              onChange={(event) => {
+                setScheduledAt(event.target.value);
+                setScheduleError("");
+              }}
+              min={minimumScheduledAt}
               className={inputStyles}
             />
+            {scheduleError && <p role="alert" className="mt-2 text-sm font-medium text-rose-600 dark:text-rose-300">{scheduleError}</p>}
             <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
               This sets the next scheduled message. It does not send messages
               automatically from this form.
@@ -314,16 +325,18 @@ function AgentForm({
           <button
             type="button"
             onClick={onCancel}
-            className="app-transition rounded-xl border border-[var(--app-border)] px-5 py-3 text-sm font-semibold text-[var(--app-text)] hover:bg-[var(--app-surface-secondary)]"
+            disabled={isSaving}
+            className="app-transition rounded-xl border border-[var(--app-border)] px-5 py-3 text-sm font-semibold text-[var(--app-text)] hover:bg-[var(--app-surface-secondary)] disabled:opacity-50"
           >
             Cancel
           </button>
 
           <button
             type="submit"
-            className="app-transition rounded-xl bg-[var(--app-primary)] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] dark:text-[#0b1713]"
+            disabled={isSaving}
+            className="form-primary-action app-transition inline-flex items-center gap-2 rounded-xl bg-[var(--app-primary)] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:translate-y-0 disabled:opacity-60 dark:text-[#0b1713]"
           >
-            {isEditing ? "Save changes" : "Create agent"}
+            {isSaving ? <><LoaderCircle size={16} className="animate-spin" />Saving agent…</> : <>{isEditing ? "Save changes" : "Create agent"}<ArrowRight size={16} /></>}
           </button>
         </div>
       </form>

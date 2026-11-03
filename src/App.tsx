@@ -1,17 +1,24 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
   Bot,
   CalendarClock,
   ChevronRight,
   Heart,
+  Clock3,
+  LoaderCircle,
+  LogOut,
+  Plus,
+  UserRoundPlus,
   Send,
-  Sparkles,
   UsersRound,
 } from "lucide-react";
 
 import Sidebar from "./Components/layout/Sidebar";
 import Header from "./Components/layout/Header";
+import KinoraLogo from "./Components/branding/KinoraLogo";
+import { useFeedback } from "./Components/feedback/FeedbackContext";
+import LoadError from "./Components/feedback/LoadError";
 import AgentList from "./Features/agents/AgentList";
 import type { Agent } from "./Features/agents/types";
 import AgentForm from "./Features/agents/AgentForm";
@@ -23,15 +30,20 @@ import { supabase } from "./lib/supabaseClient";
 import type { ScheduledMessage } from "./Features/scheduling/types";
 import { syncScheduledMessage } from "./Features/scheduling/schedulingService";
 import UpcomingMessages from "./Features/scheduling/UpcomingMessages";
+import WhatsAppTest from "./Features/whatsapp/WhatsAppTest";
 
 function App() {
+  const { notify, confirm } = useFeedback();
+  const [pageOpenedAt] = useState(() => new Date());
   const [session, setSession] = useState<Session | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const accountCreationInProgress = useRef(false);
 
   const [scheduledMessageCount, setScheduledMessageCount] = useState(0);
   const [sentMessageCount, setSentMessageCount] = useState(0);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("overview");
 
   const [scheduledMessages, setScheduledMessages] = useState<
     ScheduledMessage[]
@@ -41,11 +53,17 @@ function App() {
 
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isLoadingAgents, setIsLoadingAgents] = useState(true);
+  const [agentsLoadError, setAgentsLoadError] = useState(false);
+  const [agentsRetryCount, setAgentsRetryCount] = useState(0);
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
 
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoadingContacts, setIsLoadingContacts] = useState(true);
+  const [contactsLoadError, setContactsLoadError] = useState(false);
+  const [contactsRetryCount, setContactsRetryCount] = useState(0);
+  const [scheduledLoadError, setScheduledLoadError] = useState(false);
+  const [scheduledRetryCount, setScheduledRetryCount] = useState(0);
   const [isCreatingContact, setIsCreatingContact] = useState(false);
 
   // --------------------------------------------------
@@ -72,10 +90,18 @@ function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (accountCreationInProgress.current && event === "SIGNED_IN") return;
       setSession(newSession);
       setIsAuthLoading(false);
       setIsMobileMenuOpen(false);
+      if (event === "SIGNED_OUT") {
+        setScheduledMessageCount(0);
+        setSentMessageCount(0);
+        setScheduledMessages([]);
+        setAgents([]);
+        setContacts([]);
+      }
     });
 
     return () => {
@@ -83,6 +109,28 @@ function App() {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!session) return;
+
+    const sectionIds = ["overview", "analytics", "agents", "contacts", "schedule", "history"];
+    const sections = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter((section): section is HTMLElement => section !== null);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleSections = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((first, second) => second.intersectionRatio - first.intersectionRatio);
+        if (visibleSections[0]) setActiveSection(visibleSections[0].target.id);
+      },
+      { rootMargin: "-18% 0px -68% 0px", threshold: [0, 0.1, 0.25, 0.5] },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [session]);
 
   // --------------------------------------------------
   // SCHEDULED MESSAGE STATISTICS
@@ -102,6 +150,7 @@ function App() {
         "Failed to refresh scheduled message count:",
         error.message,
       );
+      notify("Could not refresh the number of upcoming messages.", "error");
       return;
     }
 
@@ -109,11 +158,7 @@ function App() {
   }
 
   useEffect(() => {
-    if (!session) {
-      setScheduledMessageCount(0);
-      setSentMessageCount(0);
-      return;
-    }
+    if (!session) return;
 
     let isMounted = true;
 
@@ -139,6 +184,7 @@ function App() {
           "Failed to load scheduled message count:",
           scheduledResult.error.message,
         );
+        notify("Could not load your upcoming-message total.", "error");
       } else {
         setScheduledMessageCount(scheduledResult.count ?? 0);
       }
@@ -148,6 +194,7 @@ function App() {
           "Failed to load sent message count:",
           sentResult.error.message,
         );
+        notify("Could not load your delivered-message total.", "error");
       } else {
         setSentMessageCount(sentResult.count ?? 0);
       }
@@ -158,23 +205,20 @@ function App() {
     return () => {
       isMounted = false;
     };
-  }, [session]);
+  }, [session, notify]);
 
   // --------------------------------------------------
   // CONTACTS
   // --------------------------------------------------
 
   useEffect(() => {
-    if (!session) {
-      setContacts([]);
-      setIsLoadingContacts(false);
-      return;
-    }
+    if (!session) return;
 
     let isMounted = true;
 
     async function loadContacts() {
       setIsLoadingContacts(true);
+      setContactsLoadError(false);
 
       const { data, error } = await supabase
         .from("contacts")
@@ -186,6 +230,8 @@ function App() {
 
       if (error) {
         console.error("Failed to load contacts:", error.message);
+        setContactsLoadError(true);
+        notify("Could not load your contacts. Refresh the page to try again.", "error");
         setIsLoadingContacts(false);
         return;
       }
@@ -200,6 +246,7 @@ function App() {
           createdAt: row.created_at,
         })),
       );
+      setContactsLoadError(false);
 
       setIsLoadingContacts(false);
     }
@@ -209,7 +256,7 @@ function App() {
     return () => {
       isMounted = false;
     };
-  }, [session]);
+  }, [session, notify, contactsRetryCount]);
 
   async function handleCreateContact(contact: Contact) {
     if (!session) return;
@@ -228,7 +275,7 @@ function App() {
 
     if (error) {
       console.error("Failed to create contact:", error.message);
-      window.alert("Could not save contact. Please try again.");
+      notify("Could not save the contact. Please try again.", "error");
       return;
     }
 
@@ -244,14 +291,19 @@ function App() {
     setContacts((currentContacts) => [savedContact, ...currentContacts]);
 
     setIsCreatingContact(false);
+    notify("Contact added to your circle.", "success");
   }
 
   async function handleDeleteContact(contactId: string) {
     if (!session) return;
 
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this contact?",
-    );
+    const confirmed = await confirm({
+      title: "Delete this contact?",
+      message: "This contact will be removed from your Kinora circle. If an agent uses this contact, review that agent after deletion.",
+      cancelLabel: "Keep contact",
+      confirmLabel: "Delete contact",
+      danger: true,
+    });
 
     if (!confirmed) return;
 
@@ -263,13 +315,14 @@ function App() {
 
     if (error) {
       console.error("Failed to delete contact:", error.message);
-      window.alert("Could not delete contact. Please try again.");
+      notify("Could not delete the contact. Please try again.", "error");
       return;
     }
 
     setContacts((currentContacts) =>
       currentContacts.filter((contact) => contact.id !== contactId),
     );
+    notify("Contact removed from your circle.", "success");
   }
 
   // --------------------------------------------------
@@ -277,16 +330,13 @@ function App() {
   // --------------------------------------------------
 
   useEffect(() => {
-    if (!session) {
-      setAgents([]);
-      setIsLoadingAgents(false);
-      return;
-    }
+    if (!session) return;
 
     let isMounted = true;
 
     async function loadAgents() {
       setIsLoadingAgents(true);
+      setAgentsLoadError(false);
 
       const { data, error } = await supabase
         .from("agents")
@@ -298,6 +348,8 @@ function App() {
 
       if (error) {
         console.error("Failed to load agents:", error.message);
+        setAgentsLoadError(true);
+        notify("Could not load your messaging agents. Refresh the page to try again.", "error");
         setIsLoadingAgents(false);
         return;
       }
@@ -321,6 +373,7 @@ function App() {
       });
 
       setAgents(loadedAgents);
+      setAgentsLoadError(false);
       setIsLoadingAgents(false);
     }
 
@@ -329,7 +382,7 @@ function App() {
     return () => {
       isMounted = false;
     };
-  }, [session, contacts]);
+  }, [session, contacts, notify, agentsRetryCount]);
 
   async function handleCreateAgent(agent: Agent) {
     if (!session) return;
@@ -350,7 +403,7 @@ function App() {
 
     if (error) {
       console.error("Failed to create agent:", error.message);
-      window.alert("Could not save agent. Please try again.");
+      notify("Could not save the agent. Please try again.", "error");
       return;
     }
 
@@ -367,6 +420,7 @@ function App() {
       createdAt: data.created_at,
     };
 
+    let scheduleSynced = true;
     try {
       await syncScheduledMessage({
         userId: session.user.id,
@@ -376,15 +430,18 @@ function App() {
       await refreshScheduledMessageCount();
     } catch (error) {
       console.error("Scheduling failed:", error);
-
-      window.alert(
-        "The agent was saved, but its scheduled message could not be created. Please try again.",
-      );
+      scheduleSynced = false;
     }
 
     setAgents((currentAgents) => [savedAgent, ...currentAgents]);
 
     setIsCreatingAgent(false);
+    notify(
+      scheduleSynced
+        ? "Your messaging agent has been created."
+        : "Agent created, but its scheduled message needs attention.",
+      scheduleSynced ? "success" : "error",
+    );
   }
 
   async function handleUpdateAgent(updatedAgent: Agent) {
@@ -407,7 +464,7 @@ function App() {
 
     if (error) {
       console.error("Failed to update agent:", error.message);
-      window.alert("Could not update agent. Please try again.");
+      notify("Could not update the agent. Please try again.", "error");
       return;
     }
 
@@ -424,6 +481,7 @@ function App() {
       createdAt: data.created_at,
     };
 
+    let scheduleSynced = true;
     try {
       await syncScheduledMessage({
         userId: session.user.id,
@@ -433,10 +491,7 @@ function App() {
       await refreshScheduledMessageCount();
     } catch (error) {
       console.error("Scheduling failed:", error);
-
-      window.alert(
-        "The agent was saved, but its scheduled message could not be created. Please try again.",
-      );
+      scheduleSynced = false;
     }
 
     setAgents((currentAgents) => {
@@ -455,6 +510,12 @@ function App() {
 
     setIsCreatingAgent(false);
     setEditingAgent(null);
+    notify(
+      scheduleSynced
+        ? "Agent details saved."
+        : "Agent saved, but its scheduled message needs attention.",
+      scheduleSynced ? "success" : "error",
+    );
   }
 
   async function handleToggleAgentStatus(agentId: string) {
@@ -474,7 +535,7 @@ function App() {
 
     if (error) {
       console.error("Failed to change agent status:", error.message);
-      window.alert("Could not update agent status.");
+      notify("Could not update the agent status. Please try again.", "error");
       return;
     }
 
@@ -483,6 +544,7 @@ function App() {
       status: newStatus,
     };
 
+    let scheduleSynced = true;
     try {
       await syncScheduledMessage({
         userId: session.user.id,
@@ -492,23 +554,31 @@ function App() {
       await refreshScheduledMessageCount();
     } catch (error) {
       console.error("Failed to sync scheduled message:", error);
-
-      window.alert(
-        "The agent status was updated, but its scheduled message could not be synchronised. Please check the schedule before continuing.",
-      );
+      scheduleSynced = false;
     }
 
     setAgents((currentAgents) =>
       currentAgents.map((item) => (item.id === agentId ? updatedAgent : item)),
+    );
+    notify(
+      scheduleSynced
+        ? `Agent ${newStatus === "active" ? "activated" : "paused"}.`
+        : `Agent ${newStatus === "active" ? "activated" : "paused"}, but its schedule needs attention.`,
+      scheduleSynced ? "success" : "error",
     );
   }
 
   async function handleDeleteAgent(agentId: string) {
     if (!session) return;
 
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this agent? Any pending scheduled message will also be cancelled.",
-    );
+    const agentToDelete = agents.find((agent) => agent.id === agentId);
+    const confirmed = await confirm({
+      title: "Delete this agent?",
+      message: `Delete ${agentToDelete?.name ?? "this agent"} and cancel any pending messages linked to it?`,
+      cancelLabel: "Keep agent",
+      confirmLabel: "Delete agent",
+      danger: true,
+    });
 
     if (!confirmed) return;
 
@@ -525,9 +595,7 @@ function App() {
         cancelError.message,
       );
 
-      window.alert(
-        "Could not cancel the agent's scheduled messages. The agent was not deleted.",
-      );
+      notify("The agent was not deleted because its scheduled messages could not be cancelled.", "error");
 
       return;
     }
@@ -541,9 +609,7 @@ function App() {
     if (deleteError) {
       console.error("Failed to delete agent:", deleteError.message);
 
-      window.alert(
-        "The scheduled message was cancelled, but the agent could not be deleted. Please try again.",
-      );
+      notify("The pending message was cancelled, but the agent could not be deleted. Please try again.", "error");
 
       return;
     }
@@ -557,6 +623,7 @@ function App() {
     );
 
     await refreshScheduledMessageCount();
+    notify("Agent deleted and pending messages cancelled.", "success");
   }
 
   // --------------------------------------------------
@@ -564,16 +631,13 @@ function App() {
   // --------------------------------------------------
 
   useEffect(() => {
-    if (!session) {
-      setScheduledMessages([]);
-      setIsLoadingScheduledMessages(false);
-      return;
-    }
+    if (!session) return;
 
     let isMounted = true;
 
     async function loadScheduledMessages() {
       setIsLoadingScheduledMessages(true);
+      setScheduledLoadError(false);
 
       const { data, error } = await supabase
         .from("scheduled_messages")
@@ -596,6 +660,8 @@ function App() {
 
       if (error) {
         console.error("Failed to load scheduled messages:", error.message);
+        setScheduledLoadError(true);
+        notify("Could not load your upcoming messages. Refresh the page to try again.", "error");
 
         setIsLoadingScheduledMessages(false);
         return;
@@ -618,6 +684,7 @@ function App() {
       }));
 
       setScheduledMessages(loadedMessages);
+      setScheduledLoadError(false);
       setIsLoadingScheduledMessages(false);
     }
 
@@ -626,14 +693,18 @@ function App() {
     return () => {
       isMounted = false;
     };
-  }, [session, contacts, agents]);
+  }, [session, contacts, agents, notify, scheduledRetryCount]);
 
   async function handleCancelScheduledMessage(messageId: string) {
     if (!session) return;
 
-    const confirmed = window.confirm(
-      "Are you sure you want to cancel this scheduled message?",
-    );
+    const confirmed = await confirm({
+      title: "Cancel this message?",
+      message: "It will be removed from your upcoming schedule. You can plan a new one at any time.",
+      cancelLabel: "Keep message",
+      confirmLabel: "Cancel message",
+      danger: true,
+    });
 
     if (!confirmed) return;
 
@@ -647,7 +718,7 @@ function App() {
     if (error) {
       console.error("Failed to cancel scheduled message:", error.message);
 
-      window.alert("Could not cancel the message. Please try again.");
+      notify("Could not cancel the message. Please try again.", "error");
       return;
     }
 
@@ -656,6 +727,7 @@ function App() {
     );
 
     await refreshScheduledMessageCount();
+    notify("Scheduled message cancelled.", "success");
   }
 
   // --------------------------------------------------
@@ -664,14 +736,20 @@ function App() {
 
   if (isAuthLoading) {
     return (
-      <div className="app-transition flex min-h-screen items-center justify-center bg-[var(--app-background)] text-[var(--app-text)]">
-        <p className="text-[var(--app-text-muted)]">Loading Kinora...</p>
+      <div className="auth-loading-screen app-transition flex min-h-screen flex-col items-center justify-center gap-5 bg-[var(--app-background)] text-[var(--app-text)]">
+        <KinoraLogo size={52} showTagline />
+        <div className="flex items-center gap-2 text-sm text-[var(--app-text-muted)]"><LoaderCircle size={16} className="animate-spin text-[var(--app-accent)]" />Preparing your space…</div>
       </div>
     );
   }
 
   if (!session) {
-    return <AuthForm />;
+    return (
+      <AuthForm
+        onAccountCreationStart={() => { accountCreationInProgress.current = true; }}
+        onAccountCreationComplete={() => { accountCreationInProgress.current = false; }}
+      />
+    );
   }
 
   // --------------------------------------------------
@@ -679,7 +757,7 @@ function App() {
   // --------------------------------------------------
 
   return (
-    <div className="app-transition flex min-h-screen bg-[var(--app-background)] text-[var(--app-text)]">
+    <div className="app-transition app-shell flex min-h-screen bg-[var(--app-background)] text-[var(--app-text)]">
       {/* Mobile navigation backdrop and drawer */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
@@ -691,57 +769,56 @@ function App() {
           />
 
           <div className="app-transition absolute inset-y-0 left-0 max-w-[85vw] overflow-y-auto shadow-2xl">
-            <Sidebar onNavigate={() => setIsMobileMenuOpen(false)} />
+            <Sidebar activeSection={activeSection} onNavigate={() => setIsMobileMenuOpen(false)} />
           </div>
         </div>
       )}
 
       {/* Desktop sidebar */}
-      <div className="hidden shrink-0 lg:block">
-        <Sidebar />
+      <div className="sticky top-0 hidden h-screen shrink-0 self-start lg:block">
+        <Sidebar activeSection={activeSection} />
       </div>
 
       {/* Main application area */}
       <div className="flex min-w-0 flex-1 flex-col">
         <Header
+          activeSection={activeSection}
+          onNotificationsClick={() => notify("Notifications will be available here when message alerts are enabled.", "info")}
           isMobileMenuOpen={isMobileMenuOpen}
           onMenuClick={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
         />
 
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-9">
           <div className="mx-auto max-w-[1440px]">
-            {/* Date */}
-            <p className="text-sm font-semibold text-[var(--app-accent)]">
-              {new Date().toLocaleDateString("en-ZA", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
-
             {/* Welcome section */}
-            <div className="mt-5 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <div id="overview" className="dashboard-intro scroll-mt-28 relative flex flex-col gap-7 overflow-hidden rounded-[28px] border border-[var(--app-border)] px-6 py-7 sm:px-8 sm:py-8 lg:flex-row lg:items-end lg:justify-between lg:px-10 lg:py-9">
+              <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-24 h-72 w-72 rounded-full bg-[var(--app-accent)] opacity-[0.10] blur-3xl" />
+              <div aria-hidden="true" className="pointer-events-none absolute bottom-0 right-[22%] h-px w-1/3 bg-gradient-to-r from-transparent via-[var(--app-accent)]/30 to-transparent" />
               <div className="min-w-0">
-                <p className="text-sm font-medium text-[var(--app-accent)]">
-                  Your personal workspace
+                <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)]/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)]">
+                  <span className="hero-date-dot h-1.5 w-1.5 rounded-full bg-[var(--app-accent)] shadow-[0_0_10px_var(--app-accent)]" />
+                  {pageOpenedAt.toLocaleDateString("en-ZA", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
                 </p>
 
-                <h2 className="mt-2 text-3xl font-bold tracking-tight text-[var(--app-text)] sm:text-4xl">
-                  {new Date().getHours() < 12
+                <p className="mb-1 text-sm font-medium text-[var(--app-text-muted)]">Your personal workspace</p>
+                <h2 className="greeting-title mt-1 flex flex-wrap gap-x-[0.22em] text-4xl font-bold tracking-[-0.045em] text-[var(--app-text)] sm:text-5xl">
+                  {(pageOpenedAt.getHours() < 12
                     ? "Good morning!"
-                    : new Date().getHours() < 18
+                    : pageOpenedAt.getHours() < 18
                       ? "Good afternoon!"
-                      : "Good evening!"}
+                      : "Good evening!"
+                  ).split(" ").map((word, index) => (
+                    <span key={word} className="greeting-word" style={{ animationDelay: `${index * 110}ms` }}>{word}</span>
+                  ))}
                 </h2>
 
-                <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--app-text-muted)] sm:text-base">
+                <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--app-text-muted)] sm:text-base">
                   A little more thought, a little more connection. Here's your
                   overview of the people and messages that matter.
                 </p>
               </div>
 
-              <div className="flex shrink-0 flex-wrap items-center gap-3">
+              <div className="relative flex shrink-0 flex-wrap items-center gap-3">
                 <button
                   type="button"
                   onClick={async () => {
@@ -749,10 +826,12 @@ function App() {
 
                     if (error) {
                       console.error("Sign out failed:", error.message);
+                      notify("Could not sign out. Please try again.", "error");
                     }
                   }}
-                  className="rounded-xl border border-[var(--app-border)] px-4 py-3 text-sm font-semibold text-[var(--app-text-muted)] transition hover:bg-[var(--app-surface-secondary)] hover:text-[var(--app-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+                  className="hero-secondary-action group inline-flex items-center gap-2 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)]/75 px-4 py-3 text-sm font-semibold text-[var(--app-text-muted)] shadow-sm transition hover:-translate-y-0.5 hover:bg-[var(--app-surface)] hover:text-[var(--app-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
                 >
+                  <LogOut size={16} className="hero-button-icon" aria-hidden="true" />
                   Sign out
                 </button>
 
@@ -762,10 +841,10 @@ function App() {
                     setEditingAgent(null);
                     setIsCreatingAgent(true);
                   }}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--app-primary)] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+                  className="primary-action hero-primary-action group inline-flex items-center justify-center gap-2.5 rounded-2xl bg-[var(--app-primary)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-950/15 transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
                 >
-                  <span aria-hidden="true" className="text-lg leading-none">
-                    +
+                  <span aria-hidden="true" className="hero-plus flex h-6 w-6 items-center justify-center rounded-lg bg-white/15">
+                    <Plus size={16} strokeWidth={2.3} />
                   </span>
                   Create an agent
                 </button>
@@ -790,7 +869,7 @@ function App() {
             )}
 
             {/* Dashboard statistics */}
-            <div className="mt-9 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div id="analytics" className="mt-9 scroll-mt-28 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {[
                 {
                   label: "Active agents",
@@ -798,32 +877,32 @@ function App() {
                     .length,
                   detail: "Your personal assistants",
                   icon: Bot,
-                  accent: "text-emerald-600 dark:text-emerald-300",
-                  iconBg: "bg-emerald-500/10",
+                  accent: "text-[var(--app-accent)]",
+                  iconBg: "bg-[var(--app-accent)]/10",
                 },
                 {
                   label: "Scheduled messages",
                   value: scheduledMessageCount,
                   detail: "Messages awaiting delivery",
                   icon: CalendarClock,
-                  accent: "text-sky-600 dark:text-sky-300",
-                  iconBg: "bg-sky-500/10",
+                  accent: "text-[var(--app-accent)]",
+                  iconBg: "bg-[var(--app-accent)]/10",
                 },
                 {
                   label: "Messages sent",
                   value: sentMessageCount,
                   detail: "Successfully delivered",
                   icon: Send,
-                  accent: "text-violet-600 dark:text-violet-300",
-                  iconBg: "bg-violet-500/10",
+                  accent: "text-[var(--app-accent)]",
+                  iconBg: "bg-[var(--app-accent)]/10",
                 },
                 {
                   label: "Contacts",
                   value: contacts.length,
                   detail: "People who matter to you",
                   icon: UsersRound,
-                  accent: "text-rose-600 dark:text-rose-300",
-                  iconBg: "bg-rose-500/10",
+                  accent: "text-[var(--app-accent)]",
+                  iconBg: "bg-[var(--app-accent)]/10",
                 },
               ].map((stat) => {
                 const Icon = stat.icon;
@@ -831,7 +910,7 @@ function App() {
                 return (
                   <section
                     key={stat.label}
-                    className="surface surface-hover group relative overflow-hidden rounded-2xl border border-[var(--app-border)] p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/[0.04] sm:p-6"
+                    className="stat-card surface surface-hover group relative overflow-hidden rounded-[22px] border border-[var(--app-border)] p-5 sm:p-6"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -839,15 +918,15 @@ function App() {
                           {stat.label}
                         </p>
 
-                        <p className="mt-5 text-3xl font-bold tracking-tight text-[var(--app-text)] tabular-nums">
+                        <p className="mt-5 text-4xl font-bold tracking-[-0.04em] text-[var(--app-text)] tabular-nums">
                           {stat.value}
                         </p>
                       </div>
 
                       <span
-                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${stat.iconBg} ${stat.accent} transition-transform duration-300 group-hover:scale-110`}
+                        className={`stat-icon-tile flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${stat.accent}`}
                       >
-                        <Icon size={21} strokeWidth={1.8} />
+                        <Icon className="stat-glyph" size={21} strokeWidth={1.9} />
                       </span>
                     </div>
 
@@ -871,7 +950,7 @@ function App() {
             </div>
 
             {/* Welcome card */}
-            <section className="surface relative mt-6 overflow-hidden rounded-3xl border border-[var(--app-border)] p-6 sm:p-8 lg:p-9">
+            <section className="welcome-card surface relative mt-6 overflow-hidden rounded-[28px] border border-[var(--app-border)] p-6 sm:p-8 lg:p-10">
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-[var(--app-accent)] opacity-[0.08] blur-3xl"
@@ -879,12 +958,8 @@ function App() {
 
               <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                 <div className="max-w-2xl">
-                  <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--app-primary)] text-white shadow-lg shadow-emerald-950/10 dark:text-[#0b1713]">
-                    <Heart size={25} strokeWidth={1.8} />
-
-                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[var(--app-surface)] bg-[var(--app-accent)] text-white">
-                      <Sparkles size={10} strokeWidth={2.5} />
-                    </span>
+                  <div aria-hidden="true" className="welcome-heart-mark relative flex h-14 w-14 items-center justify-center rounded-[19px]">
+                    <Heart className="welcome-heart-glyph" size={27} strokeWidth={1.7} fill="currentColor" />
                   </div>
 
                   <p className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">
@@ -912,7 +987,7 @@ function App() {
                     setEditingAgent(null);
                     setIsCreatingAgent(true);
                   }}
-                  className="relative inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-3 text-sm font-semibold text-[var(--app-text)] transition hover:bg-[var(--app-surface-secondary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] sm:self-center"
+                    className="relative inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-3 text-sm font-semibold text-[var(--app-text)] shadow-sm transition hover:-translate-y-0.5 hover:bg-[var(--app-surface-secondary)] hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] sm:self-center"
                 >
                   {agents.length === 0
                     ? "Create your first agent"
@@ -924,30 +999,41 @@ function App() {
             </section>
 
             {/* My agents */}
-            <section className="mt-10">
+            <section id="agents" className="agent-section content-section mt-10 scroll-mt-28">
               <div className="mb-5 flex items-end justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-bold tracking-tight text-[var(--app-text)]">
+                  <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--app-accent)]">
+                    <Bot size={14} strokeWidth={2} aria-hidden="true" />
+                    Your assistants
+                  </p>
+                  <h2 className="text-2xl font-bold tracking-[-0.035em] text-[var(--app-text)] sm:text-[26px]">
                     My Agents
                   </h2>
 
-                  <p className="mt-1 text-sm text-[var(--app-text-muted)]">
-                    Your personal messaging assistants.
+                  <p className="mt-1.5 text-sm text-[var(--app-text-muted)]">
+                    Personal messaging assistants, built around the people you care about.
                   </p>
                 </div>
 
-                <span className="text-sm text-[var(--app-text-muted)]">
+                <span className="agent-count-badge inline-flex shrink-0 items-center gap-2 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] px-3.5 py-2 text-xs font-semibold text-[var(--app-text-muted)] shadow-sm">
+                  <Bot size={14} className="text-[var(--app-accent)]" aria-hidden="true" />
                   {agents.length} {agents.length === 1 ? "agent" : "agents"}
                 </span>
               </div>
 
-              {isLoadingAgents ? (
+              {agentsLoadError ? (
+                <LoadError title="Your agents" onRetry={() => setAgentsRetryCount((count) => count + 1)} />
+              ) : isLoadingAgents ? (
                 <p className="text-sm text-[var(--app-text-muted)]">
                   Loading your agents...
                 </p>
               ) : (
                 <AgentList
                   agents={agents}
+                  onCreate={() => {
+                    setEditingAgent(null);
+                    setIsCreatingAgent(true);
+                  }}
                   onEdit={(agent) => {
                     setIsCreatingAgent(false);
                     setEditingAgent(agent);
@@ -959,18 +1045,19 @@ function App() {
             </section>
 
             {/* My contacts */}
-            <section className="mt-12">
+            <section id="contacts" className="content-section mt-12 scroll-mt-28">
               <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">
+                <div className="min-w-0">
+                  <p className="inline-flex items-center gap-2 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--app-accent)]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--app-accent)] shadow-[0_0_10px_var(--app-accent)]" />
                     Your personal circle
                   </p>
 
-                  <h2 className="mt-2 text-2xl font-bold tracking-tight text-[var(--app-text)]">
+                  <h2 className="mt-3 text-2xl font-bold tracking-[-0.035em] text-[var(--app-text)] sm:text-[28px]">
                     My Contacts
                   </h2>
 
-                  <p className="mt-2 max-w-lg text-sm leading-6 text-[var(--app-text-muted)]">
+                  <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--app-text-muted)]">
                     Keep the important people in your life organised, with their
                     details and the little things you want to remember.
                   </p>
@@ -979,12 +1066,13 @@ function App() {
                 <button
                   type="button"
                   onClick={() => setIsCreatingContact(true)}
-                  className="app-transition inline-flex items-center justify-center gap-2 self-start rounded-xl bg-[var(--app-primary)] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] dark:text-[#0b1713] sm:self-auto"
+                  className="contact-add-action group relative inline-flex items-center justify-center gap-2.5 self-start overflow-hidden rounded-2xl px-5 py-3.5 text-sm font-semibold shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] sm:self-auto"
                 >
-                  <span aria-hidden="true" className="text-lg leading-none">
-                    +
+                  <span aria-hidden="true" className="contact-add-icon flex h-6 w-6 items-center justify-center rounded-lg bg-white/15 transition duration-300 group-hover:rotate-[-8deg] group-hover:scale-110">
+                    <UserRoundPlus size={16} strokeWidth={2} />
                   </span>
-                  Add contact
+                  <span>Add contact</span>
+                  <span aria-hidden="true" className="contact-add-shine pointer-events-none absolute inset-y-0 -left-1/2 w-1/3 skew-x-[-20deg] opacity-0 transition duration-700 group-hover:left-[130%] group-hover:opacity-100" />
                 </button>
               </div>
 
@@ -997,7 +1085,9 @@ function App() {
                 </div>
               )}
 
-              {isLoadingContacts ? (
+              {contactsLoadError ? (
+                <LoadError title="Your contacts" onRetry={() => setContactsRetryCount((count) => count + 1)} />
+              ) : isLoadingContacts ? (
                 <div className="surface rounded-2xl p-8">
                   <p className="text-sm text-[var(--app-text-muted)]">
                     Loading your contacts...
@@ -1015,8 +1105,44 @@ function App() {
             <UpcomingMessages
               messages={scheduledMessages}
               isLoading={isLoadingScheduledMessages}
+              loadError={scheduledLoadError}
+              onRetry={() => setScheduledRetryCount((count) => count + 1)}
               onCancel={handleCancelScheduledMessage}
+              onCreatePlan={() => {
+                setEditingAgent(null);
+                setIsCreatingAgent(true);
+              }}
             />
+
+            <section id="history" className="history-section mt-12 scroll-mt-28">
+              <div className="mb-5">
+                <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--app-accent)]">
+                  <Clock3 size={14} aria-hidden="true" />
+                  Your activity
+                </p>
+                <h2 className="text-2xl font-bold tracking-[-0.035em] text-[var(--app-text)] sm:text-[26px]">Message history</h2>
+                <p className="mt-1.5 text-sm text-[var(--app-text-muted)]">A simple view of the moments you have already sent.</p>
+              </div>
+              <div className="history-summary surface flex flex-col gap-5 rounded-[24px] p-5 sm:flex-row sm:items-center sm:p-7">
+                <span className="history-icon flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-[var(--app-accent)]"><Send size={23} strokeWidth={1.8} aria-hidden="true" /></span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg font-semibold tracking-tight text-[var(--app-text)]">
+                    {sentMessageCount === 0 ? "Your sent messages will appear here." : `${sentMessageCount} ${sentMessageCount === 1 ? "message has" : "messages have"} been delivered.`}
+                  </p>
+                  <p className="mt-1.5 max-w-2xl text-sm leading-6 text-[var(--app-text-muted)]">
+                    {sentMessageCount === 0
+                      ? "Once a planned message is delivered, you will see your sent-message total here."
+                      : "This total reflects messages marked as sent. A detailed delivery timeline is coming soon."}
+                  </p>
+                </div>
+                <span className="history-total shrink-0 tabular-nums">{sentMessageCount.toLocaleString("en-ZA")}</span>
+              </div>
+            </section>
+
+            {/* WhatsApp Cloud API integration test */}
+            <section className="mt-10">
+              <WhatsAppTest />
+            </section>
           </div>
         </main>
       </div>

@@ -1,4 +1,4 @@
-import { useTheme } from './ThemeProvider'
+import { useTheme } from './ThemeContext'
 
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()
@@ -16,6 +16,7 @@ export default function ThemeToggle() {
       {isDark ? (
         <svg
           viewBox="0 0 24 24"
+          className="theme-mode-icon"
           width="18"
           height="18"
           fill="none"
@@ -31,6 +32,7 @@ export default function ThemeToggle() {
       ) : (
         <svg
           viewBox="0 0 24 24"
+          className="theme-mode-icon"
           width="18"
           height="18"
           fill="none"

@@ -3,7 +3,6 @@ import {
   Bell,
   ChevronRight,
   Menu,
-  Sparkles,
   X,
 } from "lucide-react";
 import KinoraLogo from "../branding/KinoraLogo";
@@ -12,11 +11,22 @@ import ThemeToggle from "../branding/ThemeToggle";
 interface HeaderProps {
   onMenuClick: () => void;
   isMobileMenuOpen: boolean;
+  activeSection: string;
+  onNotificationsClick: () => void;
 }
 
-function Header({ onMenuClick, isMobileMenuOpen }: HeaderProps) {
+const sectionLabels: Record<string, string> = {
+  overview: "Overview",
+  analytics: "Analytics",
+  agents: "My Agents",
+  contacts: "Contacts",
+  schedule: "Schedule",
+  history: "History",
+};
+
+function Header({ onMenuClick, isMobileMenuOpen, activeSection, onNotificationsClick }: HeaderProps) {
   return (
-    <header className="app-transition sticky top-0 z-30 flex min-h-[76px] items-center justify-between gap-3 border-b border-[var(--app-border)] bg-[var(--app-surface)]/95 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+    <header className="app-transition sticky top-0 z-30 flex min-h-[78px] items-center justify-between gap-3 border-b border-[var(--app-border)] bg-[var(--app-surface)]/85 px-4 backdrop-blur-2xl sm:px-6 lg:px-8">
       <div className="flex min-w-0 items-center gap-3">
         <button
           type="button"
@@ -35,22 +45,17 @@ function Header({ onMenuClick, isMobileMenuOpen }: HeaderProps) {
         <div className="min-w-0">
           <nav
             aria-label="Breadcrumb"
-            className="mb-1 flex items-center gap-1.5 text-xs"
+            className="mb-1 flex items-center gap-1.5 text-[11px] font-medium"
           >
             <span className="text-[var(--app-text-muted)]">Workspace</span>
             <ChevronRight size={13} aria-hidden="true" className="text-[var(--app-text-muted)]" />
-            <span className="font-semibold text-[var(--app-accent)]">Overview</span>
+            <span className="font-semibold text-[var(--app-accent)]">{sectionLabels[activeSection] ?? "Overview"}</span>
           </nav>
 
           <div className="flex items-center gap-2">
-            <h1 className="truncate text-lg font-bold tracking-tight text-[var(--app-text)] sm:text-xl">
+            <h1 className="dashboard-page-title relative truncate text-lg font-bold tracking-[-0.035em] text-[var(--app-text)] sm:text-[21px]">
               Your dashboard
             </h1>
-            <Sparkles
-              size={15}
-              aria-hidden="true"
-              className="hidden text-[var(--app-accent)] sm:block"
-            />
           </div>
         </div>
       </div>
@@ -60,11 +65,12 @@ function Header({ onMenuClick, isMobileMenuOpen }: HeaderProps) {
 
         <button
           type="button"
-          aria-label="Notifications (coming soon)"
+          onClick={onNotificationsClick}
+          aria-label="Notifications"
           title="Notifications"
-          className="app-transition relative flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text-muted)] hover:bg-[var(--app-surface-secondary)] hover:text-[var(--app-accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+          className="app-transition relative flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text-muted)] shadow-sm hover:-translate-y-0.5 hover:bg-[var(--app-surface-secondary)] hover:text-[var(--app-accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
         >
-          <Bell size={19} strokeWidth={1.8} />
+          <Bell className="header-bell" size={19} strokeWidth={1.8} />
         </button>
       </div>
     </header>

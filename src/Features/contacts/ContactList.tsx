@@ -40,21 +40,21 @@ function ContactList({ contacts, onDelete }: ContactListProps) {
     <section aria-label="Your contacts">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-[var(--app-text)]">
-            Your people
+          <h3 className="text-sm font-semibold tracking-tight text-[var(--app-text)]">
+            People in your circle
           </h3>
           <p className="mt-1 text-sm text-[var(--app-text-muted)]">
-            The people you want to stay close to.
+            Your saved contacts and the details you want to remember.
           </p>
         </div>
 
-        <span className="inline-flex items-center gap-2 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-xs font-medium text-[var(--app-text-muted)]">
+        <span className="inline-flex items-center gap-2 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-xs font-semibold text-[var(--app-text-muted)] shadow-sm">
           <span className="h-1.5 w-1.5 rounded-full bg-[var(--app-accent)]" />
           {contacts.length} {contacts.length === 1 ? 'contact' : 'contacts'}
         </span>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 2xl:grid-cols-3">
+      <div className={`grid grid-cols-1 gap-4 sm:gap-5 ${contacts.length === 1 ? "lg:max-w-[620px]" : "md:grid-cols-2 2xl:grid-cols-3"}`}>
         {contacts.map((contact) => (
           <ContactCard
             key={contact.id}

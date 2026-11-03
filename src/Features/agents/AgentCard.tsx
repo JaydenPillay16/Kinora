@@ -1,5 +1,6 @@
 
 import type { Agent } from "./types";
+import { CalendarClock, Pencil, Pause, Play, Trash2 } from "lucide-react";
 
 interface AgentCardProps {
   agent: Agent;
@@ -34,10 +35,10 @@ function AgentCard({
     : null;
 
   return (
-    <article className="surface group flex h-full flex-col overflow-hidden transition duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+    <article className="agent-detail-card surface group flex h-full flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-xl">
       <div className="p-5 sm:p-6">
         <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--app-surface-secondary)] text-lg font-bold text-[var(--app-accent)] ring-1 ring-[var(--app-border)]">
+          <div className="agent-avatar flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-lg font-bold ring-1 ring-[var(--app-border)]">
             {agent.name.charAt(0).toUpperCase()}
           </div>
 
@@ -71,11 +72,9 @@ function AgentCard({
           {agent.instructions || "No instructions have been added yet."}
         </p>
 
-        <div className="mt-5 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-secondary)]/60 p-4">
+        <div className="agent-schedule mt-5 rounded-2xl border border-[var(--app-border)] p-4">
           <div className="flex items-center gap-2">
-            <span className="text-[var(--app-accent)]" aria-hidden="true">
-              ◷
-            </span>
+            <CalendarClock size={15} className="text-[var(--app-accent)]" aria-hidden="true" />
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--app-text-muted)]">
               Next scheduled message
             </p>
@@ -92,32 +91,27 @@ function AgentCard({
           <button
             type="button"
             onClick={() => onEdit(agent)}
-            className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3.5 py-2 text-sm font-semibold text-[var(--app-text)] transition hover:bg-[var(--app-surface-secondary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+            className="agent-action agent-edit-action group/edit inline-flex items-center gap-2 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] px-3.5 py-2 text-sm font-semibold text-[var(--app-text)] transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
           >
+            <Pencil size={14} className="transition-transform duration-300 group-hover/edit:-rotate-12 group-hover/edit:scale-110" aria-hidden="true" />
             Edit
           </button>
 
           <button
             type="button"
             onClick={() => onToggleStatus(agent.id)}
-            className="rounded-lg bg-[var(--app-primary)] px-3.5 py-2 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+            className="agent-action agent-toggle-action group/toggle inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
           >
+            {agent.status === "active" ? <Pause size={14} className="transition-transform duration-300 group-hover/toggle:scale-110" aria-hidden="true" /> : <Play size={14} className="transition-transform duration-300 group-hover/toggle:translate-x-0.5 group-hover/toggle:scale-110" aria-hidden="true" />}
             {agent.status === "active" ? "Pause agent" : "Activate agent"}
           </button>
 
           <button
             type="button"
-            onClick={() => {
-              const confirmed = window.confirm(
-                `Delete "${agent.name}"? Any pending scheduled message will also be cancelled.`,
-              );
-
-              if (confirmed) {
-                onDelete(agent.id);
-              }
-            }}
-            className="ml-auto rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-500/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 dark:text-red-400"
+            onClick={() => onDelete(agent.id)}
+            className="agent-action agent-delete-action group/delete ml-auto inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
           >
+            <Trash2 size={14} className="transition-transform duration-300 group-hover/delete:-rotate-6 group-hover/delete:scale-110" aria-hidden="true" />
             Delete
           </button>
         </div>

@@ -2,9 +2,10 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import type { Contact } from './types'
+import { ArrowRight, LoaderCircle } from 'lucide-react'
 
 interface ContactFormProps {
-  onCreate: (contact: Contact) => void
+  onCreate: (contact: Contact) => void | Promise<void>
   onCancel: () => void
 }
 
@@ -19,8 +20,9 @@ function ContactForm({ onCreate, onCancel }: ContactFormProps) {
   const [relationship, setRelationship] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [notes, setNotes] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     const trimmedName = name.trim()
@@ -36,7 +38,12 @@ function ContactForm({ onCreate, onCancel }: ContactFormProps) {
       createdAt: new Date().toISOString(),
     }
 
-    onCreate(newContact)
+    setIsSaving(true)
+    try {
+      await onCreate(newContact)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -204,19 +211,18 @@ function ContactForm({ onCreate, onCancel }: ContactFormProps) {
           <button
             type="button"
             onClick={onCancel}
-            className="app-transition rounded-xl border border-[var(--app-border)] px-5 py-3 text-sm font-semibold text-[var(--app-text)] hover:bg-[var(--app-surface-secondary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+            disabled={isSaving}
+            className="app-transition rounded-xl border border-[var(--app-border)] px-5 py-3 text-sm font-semibold text-[var(--app-text)] hover:bg-[var(--app-surface-secondary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:opacity-50"
           >
             Cancel
           </button>
 
           <button
             type="submit"
-            className="app-transition rounded-xl bg-[var(--app-primary)] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] dark:text-[#0b1713]"
+            disabled={isSaving}
+            className="form-primary-action app-transition inline-flex items-center gap-2 rounded-xl bg-[var(--app-primary)] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:translate-y-0 disabled:opacity-60 dark:text-[#0b1713]"
           >
-            Save contact
-            <span aria-hidden="true" className="ml-2">
-              →
-            </span>
+            {isSaving ? <><LoaderCircle size={16} className="animate-spin" />Saving contact…</> : <>Save contact<ArrowRight size={16} /></>}
           </button>
         </div>
       </form>
