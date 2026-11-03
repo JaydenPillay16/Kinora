@@ -39,28 +39,23 @@ export default function KinoraLogo({
         >
           <defs>
             <linearGradient id={gradientId} x1="8" y1="8" x2="40" y2="40">
-              <stop offset="0%" stopColor="#A7F3D0" />
-              <stop offset="100%" stopColor="#10B981" />
+              <stop offset="0%" stopColor="var(--kinora-mark-start)" />
+              <stop offset="100%" stopColor="var(--kinora-mark-end)" />
             </linearGradient>
           </defs>
 
           <path
-            d="M12 8V40"
+            d="M14 9V39"
             stroke={`url(#${gradientId})`}
-            strokeWidth="8"
+            strokeWidth="7.5"
             strokeLinecap="round"
           />
           <path
-            d="M35 10L15 25"
+            d="M35 10L15 24L35 38"
             stroke={`url(#${gradientId})`}
-            strokeWidth="8"
+            strokeWidth="7.5"
             strokeLinecap="round"
-          />
-          <path
-            d="M20 26L36 39"
-            stroke={`url(#${gradientId})`}
-            strokeWidth="8"
-            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </svg>
       </div>

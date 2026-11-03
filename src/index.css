@@ -33,6 +33,10 @@
   --app-primary-hover: #08765b;
   --app-accent: #0fa879;
   --app-focus-ring: #0fa879;
+  --kinora-mark-bg: #0c4032;
+  --kinora-mark-start: #d5fae7;
+  --kinora-mark-end: #50d4a0;
+  --kinora-mark-border: rgb(7 65 48 / 18%);
   --transition-fast: 180ms cubic-bezier(.2,.8,.2,1);
   --transition-normal: 280ms cubic-bezier(.2,.8,.2,1);
 }
@@ -49,6 +53,10 @@
   --app-primary-hover: #7ce7bd;
   --app-accent: #53d9a6;
   --app-focus-ring: #53d9a6;
+  --kinora-mark-bg: #a8f0ce;
+  --kinora-mark-start: #0b4535;
+  --kinora-mark-end: #087657;
+  --kinora-mark-border: rgb(168 240 206 / 28%);
 }
 
 * { box-sizing: border-box; }
@@ -172,8 +180,14 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
   background: linear-gradient(125deg, var(--app-surface) 38%, color-mix(in srgb, var(--app-accent) 5%, var(--app-surface)));
   animation: rise-in 650ms 100ms cubic-bezier(.2,.8,.2,1) both;
 }
-.kinora-mark { background: #073b30; transition: transform 300ms cubic-bezier(.2,.8,.2,1), box-shadow 300ms ease; }
-.kinora-mark:hover { transform: rotate(-4deg) scale(1.04); box-shadow: 0 12px 28px color-mix(in srgb, var(--app-accent) 24%, transparent); }
+.kinora-mark {
+  position: relative;
+  border: 1px solid var(--kinora-mark-border);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--kinora-mark-bg) 92%, white), var(--kinora-mark-bg));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--kinora-mark-bg) 22%, transparent), inset 0 1px rgb(255 255 255 / 20%);
+  transition: transform 300ms cubic-bezier(.2,.8,.2,1), box-shadow 300ms ease, border-color 300ms ease;
+}
+.kinora-mark:hover { transform: rotate(-4deg) scale(1.045); box-shadow: 0 12px 28px color-mix(in srgb, var(--app-accent) 25%, transparent), inset 0 1px rgb(255 255 255 / 28%); }
 .primary-action { color: #ffffff; }
 .dark .primary-action { color: #09251c; }
 .contact-add-action {
