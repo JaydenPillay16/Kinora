@@ -2,10 +2,10 @@
 import { useState, type FormEvent } from "react";
 import { LoaderCircle, Send } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
+import type { Contact } from "../contacts/types";
 
-export default function WhatsAppTest() {
-  const [message, setMessage] = useState("Hello from Kinora! 💚");
-  const [phone, setPhone] = useState("");
+export default function WhatsAppTest({ contacts }: { contacts: Contact[] }) {
+  const [selectedContactId, setSelectedContactId] = useState("");
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState("");
   const [isError, setIsError] = useState(false);
@@ -15,15 +15,20 @@ export default function WhatsAppTest() {
     setResult("");
     setIsError(false);
 
-    const normalizedPhone = phone.replace(/\D/g, "");
+    const selectedContact = contacts.find((contact) => contact.id === selectedContactId);
+    if (!selectedContact) {
+      setIsError(true);
+      setResult("Choose a saved contact first.");
+      return;
+    }
+
+    const normalizedPhone = selectedContact.phoneNumber.replace(/\D/g, "");
 
     if (normalizedPhone.length < 8 || normalizedPhone.length > 15) {
       setIsError(true);
       setResult("Enter a valid international number with 8 to 15 digits, including the country code.");
       return;
     }
-
-    if (!message.trim()) return;
 
     setSending(true);
 
@@ -43,7 +48,7 @@ export default function WhatsAppTest() {
         {
           body: {
             to: normalizedPhone,
-            message: message.trim(),
+            name: selectedContact.name.trim().split(/\s+/)[0],
           },
         },
       );
@@ -88,14 +93,23 @@ export default function WhatsAppTest() {
 
       <form onSubmit={sendTestMessage} className="grid gap-4 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]">
         <div className="space-y-2">
-          <label htmlFor="whatsapp-test-phone" className="block text-sm font-semibold text-[var(--app-text)]">Test recipient</label>
-          <input id="whatsapp-test-phone" type="tel" autoComplete="tel" inputMode="tel" required maxLength={24} value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+27 82 123 4567" aria-describedby="whatsapp-phone-help" className="auth-input w-full rounded-xl border px-4 py-3 text-sm outline-none transition" />
-          <p id="whatsapp-phone-help" className="text-xs leading-5 text-[var(--app-text-muted)]">Include the country code, for example +27.</p>
+          <label htmlFor="whatsapp-test-contact" className="block text-sm font-semibold text-[var(--app-text)]">Test recipient</label>
+          <select id="whatsapp-test-contact" required value={selectedContactId} onChange={(event) => setSelectedContactId(event.target.value)} className="auth-input w-full rounded-xl border px-4 py-3 text-sm outline-none transition">
+            <option value="">Choose a saved contact</option>
+            {contacts.filter((contact) => contact.phoneNumber.trim()).map((contact) => (
+              <option key={contact.id} value={contact.id}>{contact.name} · {contact.phoneNumber}</option>
+            ))}
+          </select>
+          <p className="text-xs leading-5 text-[var(--app-text-muted)]">For now, the Edge Function only allows your configured test recipient.</p>
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="whatsapp-test-message" className="block text-sm font-semibold text-[var(--app-text)]">Test message</label>
-          <textarea id="whatsapp-test-message" value={message} onChange={(event) => setMessage(event.target.value)} required maxLength={1000} rows={3} className="auth-input w-full resize-y rounded-xl border px-4 py-3 text-sm leading-6 outline-none transition" />
+          <label className="block text-sm font-semibold text-[var(--app-text)]">Template preview</label>
+          <div className="auth-input min-h-[108px] rounded-xl border px-4 py-3 text-sm leading-6" aria-live="polite">
+            Good morning, {contacts.find((contact) => contact.id === selectedContactId)?.name.trim().split(/\s+/)[0] || "there"}! 🌞 💚<br />
+            Wishing you a wonderful day ahead. Hope today brings you happiness and positivity!<br />
+            Sent with love through Kinora.<br /><span className="text-[var(--app-text-muted)]">Thanks</span>
+          </div>
         </div>
 
         <div className="flex flex-col items-start gap-3 lg:col-span-2 sm:flex-row sm:items-center">

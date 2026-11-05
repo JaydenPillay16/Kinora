@@ -1141,7 +1141,7 @@ function App() {
 
             {/* WhatsApp Cloud API integration test */}
             <section className="mt-10">
-              <WhatsAppTest />
+              <WhatsAppTest contacts={contacts} />
             </section>
           </div>
         </main>
