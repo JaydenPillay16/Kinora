@@ -1,12 +1,13 @@
 
 import type { Agent } from "./types";
-import { CalendarClock, Pencil, Pause, Play, Trash2 } from "lucide-react";
+import { CalendarClock, Pencil, Pause, Play, Send, Trash2 } from "lucide-react";
 
 interface AgentCardProps {
   agent: Agent;
   onEdit: (agent: Agent) => void;
   onToggleStatus: (agentId: string) => void;
   onDelete: (agentId: string) => void;
+  onSendNow: (agent: Agent) => void;
 }
 
 function AgentCard({
@@ -14,6 +15,7 @@ function AgentCard({
   onEdit,
   onToggleStatus,
   onDelete,
+  onSendNow,
 }: AgentCardProps) {
   const statusStyles = {
     active:
@@ -76,18 +78,22 @@ function AgentCard({
           <div className="flex items-center gap-2">
             <CalendarClock size={15} className="text-[var(--app-accent)]" aria-hidden="true" />
             <p className="text-xs font-semibold uppercase tracking-wider text-[var(--app-text-muted)]">
-              Next scheduled message
+              Planned message
             </p>
           </div>
 
           <p className="mt-2 text-sm font-semibold text-[var(--app-text)]">
             {formattedSchedule ?? "No message scheduled"}
           </p>
+          <p className="mt-2 text-xs leading-5 text-[var(--app-text-muted)]">Automatic delivery setup is still pending.</p>
         </div>
       </div>
 
       <div className="mt-auto border-t border-[var(--app-border)] bg-[var(--app-surface-secondary)]/30 px-5 py-4 sm:px-6">
         <div className="flex flex-wrap items-center gap-2">
+          <button type="button" onClick={() => onSendNow(agent)} className="agent-action agent-edit-action inline-flex items-center gap-2 rounded-xl border border-[var(--app-border)] px-3.5 py-2 text-sm font-semibold">
+            <Send size={14} />Review & send
+          </button>
           <button
             type="button"
             onClick={() => onEdit(agent)}

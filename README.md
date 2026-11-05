@@ -18,7 +18,7 @@ The frontend expects these project resources to exist:
 - The `sync_agent_scheduled_message` database function used when agents change.
 - The `send-whatsapp-message` Edge Function used by the WhatsApp test panel.
 
-Database migrations and Edge Function source are not included in this folder. Configure the Edge Function with the WhatsApp Business credentials on the server; never put provider secrets in `VITE_` variables. If email confirmation is enabled in Supabase Auth, new users confirm their email before signing in.
+The updated sender source is in `supabase/functions/send-whatsapp-message/index.ts`. Follow [WhatsApp setup](docs/whatsapp-setup.md) to deploy it and enable custom messages. Database migrations, the live schedule RPC definition, an automatic sending worker, and a working delivery webhook are not included yet. Agents save message plans; automatic delivery requires that server setup. Configure WhatsApp credentials on the server; never put provider secrets in `VITE_` variables. If email confirmation is enabled in Supabase Auth, new users confirm their email before signing in.
 
 ## Commands
 

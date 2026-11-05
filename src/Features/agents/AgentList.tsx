@@ -8,9 +8,10 @@ interface AgentListProps {
   onEdit: (agent: Agent) => void;
   onToggleStatus: (agentId: string) => void;
   onDelete: (agentId: string) => void;
+  onSendNow: (agent: Agent) => void;
 }
 
-function AgentList({ agents, onCreate, onEdit, onToggleStatus, onDelete }: AgentListProps) {
+function AgentList({ agents, onCreate, onEdit, onToggleStatus, onDelete, onSendNow }: AgentListProps) {
   if (agents.length === 0) {
     return (
       <section className="agent-empty-state relative isolate overflow-hidden rounded-[26px] border border-[var(--app-border)] p-6 sm:p-8 lg:p-10" aria-labelledby="agent-empty-title">
@@ -47,7 +48,7 @@ function AgentList({ agents, onCreate, onEdit, onToggleStatus, onDelete }: Agent
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-3">
       {agents.map((agent, index) => (
         <div key={agent.id} className="agent-card-enter" style={{ animationDelay: `${Math.min(index, 5) * 70}ms` }}>
-          <AgentCard agent={agent} onEdit={onEdit} onToggleStatus={onToggleStatus} onDelete={onDelete} />
+          <AgentCard agent={agent} onEdit={onEdit} onToggleStatus={onToggleStatus} onDelete={onDelete} onSendNow={onSendNow} />
         </div>
       ))}
     </div>

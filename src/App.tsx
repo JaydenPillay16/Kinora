@@ -57,6 +57,7 @@ function App() {
   const [agentsRetryCount, setAgentsRetryCount] = useState(0);
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
+  const [sendDraft, setSendDraft] = useState<{ contactId: string; message: string; agentName: string; key: number } | null>(null);
 
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoadingContacts, setIsLoadingContacts] = useState(true);
@@ -96,6 +97,7 @@ function App() {
       setIsAuthLoading(false);
       setIsMobileMenuOpen(false);
       if (event === "SIGNED_OUT") {
+        setSendDraft(null);
         setScheduledMessageCount(0);
         setSentMessageCount(0);
         setScheduledMessages([]);
@@ -1029,6 +1031,10 @@ function App() {
                 </p>
               ) : (
                 <AgentList
+                  onSendNow={(agent) => {
+                    setSendDraft({ contactId: agent.contactId, message: agent.messageTemplate, agentName: agent.name, key: Date.now() });
+                    document.getElementById("whatsapp-composer")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+                  }}
                   agents={agents}
                   onCreate={() => {
                     setEditingAgent(null);
@@ -1140,8 +1146,8 @@ function App() {
             </section>
 
             {/* WhatsApp Cloud API integration test */}
-            <section className="mt-10">
-              <WhatsAppTest contacts={contacts} />
+            <section id="whatsapp-composer" className="mt-10 scroll-mt-28">
+              <WhatsAppTest key={sendDraft?.key ?? "manual"} contacts={contacts} initialDraft={sendDraft ?? undefined} />
             </section>
           </div>
         </main>

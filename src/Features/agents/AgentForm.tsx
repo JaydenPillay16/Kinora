@@ -106,8 +106,6 @@ function AgentForm({
   return (
     <section className="surface p-5 sm:p-8">
       {/* Form heading */}
-
-      {/* Form heading */}
       <div className="mb-8 border-b border-[var(--app-border)] pb-6">
         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-secondary)] text-xl text-[var(--app-accent)]">
           ✳
@@ -201,7 +199,7 @@ function AgentForm({
               Personality and instructions
             </h3>
             <p className="mt-1 text-sm text-[var(--app-text-muted)]">
-              Explain the tone and purpose your agent should follow.
+              Keep notes about this agent's tone and purpose. These notes do not generate messages automatically yet.
             </p>
           </div>
 
@@ -229,22 +227,22 @@ function AgentForm({
         <section className="space-y-5">
           <div className="border-b border-[var(--app-border)] pb-3">
             <h3 className="font-semibold text-[var(--app-text)]">
-              Example message
+              Your message draft
             </h3>
             <p className="mt-1 text-sm text-[var(--app-text-muted)]">
-              Write an example to see how the message will look.
+              Write the personal message you want this agent to keep. Review and send it from the agent card.
             </p>
           </div>
 
           <div>
             <label htmlFor="message-template" className={labelStyles}>
-              Message template
+              Personal message
             </label>
             <textarea
               id="message-template"
               value={messageTemplate}
               onChange={(event) => setMessageTemplate(event.target.value)}
-              placeholder="Write a thoughtful example message..."
+              placeholder="Write a thoughtful personal message..."
               required
               maxLength={2000}
               rows={4}
@@ -277,14 +275,14 @@ function AgentForm({
               <div className="max-w-lg rounded-2xl rounded-tl-sm border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-sm">
                 <p className="whitespace-pre-wrap break-words text-sm leading-6 text-[var(--app-text)]">
                   {messageTemplate.trim() ||
-                    "Your example message will appear here as you type."}
+                    "Your message will appear here as you type."}
                 </p>
               </div>
             </div>
           </div>
 
           <p className="text-xs leading-5 text-[var(--app-text-muted)]">
-            Preview only. Saving this agent will not send a message.
+            Saving keeps your draft. Custom WhatsApp text requires a message from the recipient within the last 24 hours when sending. Outreach outside that window needs an approved WhatsApp template; writing a draft does not submit it to Meta for approval.
           </p>
         </section>
 
@@ -293,13 +291,13 @@ function AgentForm({
           <div className="border-b border-[var(--app-border)] pb-3">
             <h3 className="font-semibold text-[var(--app-text)]">Scheduling</h3>
             <p className="mt-1 text-sm text-[var(--app-text-muted)]">
-              Optionally choose when the next message should be prepared.
+              Optionally plan one future message in your device's local time. Repeating daily or weekly schedules are not available yet.
             </p>
           </div>
 
           <div>
             <label htmlFor="agent-schedule" className={labelStyles}>
-              Next message date and time
+              Planned date and time
             </label>
             <input
               id="agent-schedule"
@@ -314,8 +312,7 @@ function AgentForm({
             />
             {scheduleError && <p role="alert" className="mt-2 text-sm font-medium text-rose-600 dark:text-rose-300">{scheduleError}</p>}
             <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
-              This sets the next scheduled message. It does not send messages
-              automatically from this form.
+              Your plan is saved in Kinora. Automatic delivery still needs the server scheduler connected. Activating this agent alone does not enable automatic sending.
             </p>
           </div>
         </section>

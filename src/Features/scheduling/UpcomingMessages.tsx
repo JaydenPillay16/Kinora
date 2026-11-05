@@ -40,6 +40,8 @@ function UpcomingMessages({ messages, isLoading, loadError, onRetry, onCancel, o
         </span>
       </div>
 
+      <p className="mb-5 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 text-sm leading-6 text-[var(--app-text-muted)]">These are saved plans. Automatic delivery still needs the server scheduler connected. Custom text also needs an open WhatsApp 24-hour reply window at the sending time; approved templates support outreach outside that window.</p>
+
       {isLoading ? (
         <div className="surface rounded-[24px] p-6 sm:p-8" aria-live="polite">
           <div className="flex animate-pulse items-center gap-4">
