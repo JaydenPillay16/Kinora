@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 const allowedOrigins = ["http://localhost:5173", "https://kinora-app-pi.vercel.app"];
 
@@ -15,6 +15,9 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers });
   if (req.method !== "POST") return reply({ error: "Method not allowed" }, 405);
 
+  let admin: SupabaseClient | undefined;
+  let trackingId: string | undefined;
+  let acceptedMessageId: string | undefined;
   try {
     const url = Deno.env.get("SUPABASE_URL");
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
@@ -35,9 +38,14 @@ Deno.serve(async (req: Request) => {
     const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
     const phoneId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
     const testRecipient = Deno.env.get("WHATSAPP_TEST_RECIPIENT");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (serviceKey) admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
     // A capability check is read-only and must never send a message.
-    if (body.action === "capabilities") return reply({ customText: Boolean(token && phoneId && testRecipient) });
+    if (body.action === "capabilities") {
+      const tracking = admin ? await admin.from("whatsapp_messages").select("id").limit(0) : null;
+      return reply({ customText: Boolean(token && phoneId && testRecipient), deliveryTracking: Boolean(tracking && !tracking.error) });
+    }
     if (body.action !== undefined) return reply({ error: "Invalid action" }, 400);
     if (!token || !phoneId || !testRecipient) return reply({ error: "Server configuration is incomplete" }, 500);
     const mode = body.mode ?? "template";
@@ -56,6 +64,17 @@ Deno.serve(async (req: Request) => {
     const name = String(contact.name ?? "").trim().split(/\s+/)[0];
     if (!/^[1-9]\d{7,14}$/.test(to) || !name || name.length > 100) return reply({ error: "The contact needs a valid name and international phone number" }, 400);
     if (to !== testRecipient) return reply({ error: "Recipient is not allowed for testing" }, 403);
+
+    if (!admin) return reply({ error: "Delivery tracking setup is incomplete. No message was sent." }, 503);
+    // Save before contacting Meta so even immediate webhook callbacks have a durable inbox.
+    const { data: attempt, error: trackingError } = await admin.from("whatsapp_messages").insert({
+      user_id: user.id, contact_id: body.contactId, contact_name: contact.name,
+      mode, message_text: mode === "custom" ? (body.message as string).trim() : null,
+      template_name: mode === "template" ? "kinora_daily_greeting" : null,
+      phone_number_id: phoneId, status: "sending",
+    }).select("id").single();
+    if (trackingError || !attempt) return reply({ error: "Delivery tracking setup is incomplete. Run the tracking SQL before sending. No message was sent." }, 503);
+    trackingId = attempt.id;
 
     const messagePayload = mode === "custom"
       ? { type: "text", text: { preview_url: false, body: (body.message as string).trim() } }
@@ -79,13 +98,27 @@ Deno.serve(async (req: Request) => {
         131047: "The WhatsApp reply window is closed. Use an approved greeting, or have the recipient message your business number first.",
         132001: "The approved template or language was not found. Check it in WhatsApp Manager.",
       };
-      return reply({ error: errors[code] ?? "WhatsApp rejected the message. Check the function logs for its error code.", code }, 502);
+      const message = errors[code] ?? "WhatsApp rejected the message. Check the function logs for its error code.";
+      await admin.from("whatsapp_messages").update({ status: "failed", error_code: Number.isSafeInteger(code) ? code : null, error_message: message, updated_at: new Date().toISOString() }).eq("id", trackingId);
+      return reply({ error: message, code, trackingId }, 502);
     }
     const messageId = result.messages?.[0]?.id;
-    if (!messageId) return reply({ error: "WhatsApp did not return a message ID" }, 502);
-    return reply({ success: true, messageId });
+    if (!messageId) throw new Error("Missing Meta message ID");
+    acceptedMessageId = messageId;
+    const { error: attachError } = await admin.rpc("kinora_attach_whatsapp_message", { p_id: trackingId, p_message_id: messageId });
+    if (attachError) {
+      console.error("WhatsApp accepted message but tracking attach failed", { code: attachError.code, trackingId });
+      return reply({ success: true, messageId, trackingId, trackingWarning: "WhatsApp accepted this message, but delivery tracking could not be linked. Check the receiving phone before sending again." });
+    }
+    return reply({ success: true, messageId, trackingId });
   } catch {
     console.error("WhatsApp request failed before completion");
+    if (acceptedMessageId) return reply({ success: true, messageId: acceptedMessageId, trackingId, trackingWarning: "WhatsApp accepted this message. Delivery tracking is unavailable; check the receiving phone before sending again." });
+    if (admin && trackingId) {
+      try {
+        await admin.from("whatsapp_messages").update({ status: "unknown", error_message: "The send request was interrupted. Check the receiving phone before retrying.", updated_at: new Date().toISOString() }).eq("id", trackingId);
+      } catch { /* Preserve the original request failure. */ }
+    }
     return reply({ error: "Unable to complete the WhatsApp request. Check delivery before retrying." }, 502);
   }
 });

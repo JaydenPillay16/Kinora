@@ -18,11 +18,13 @@ The frontend expects these project resources to exist:
 - The `sync_agent_scheduled_message` database function used when agents change.
 - The `send-whatsapp-message` Edge Function used by the WhatsApp test panel.
 
-The updated sender source is in `supabase/functions/send-whatsapp-message/index.ts`. Follow [WhatsApp setup](docs/whatsapp-setup.md) to deploy it and enable custom messages. Database migrations, the live schedule RPC definition, an automatic sending worker, and a working delivery webhook are not included yet. Agents save message plans; automatic delivery requires that server setup. Configure WhatsApp credentials on the server; never put provider secrets in `VITE_` variables. If email confirmation is enabled in Supabase Auth, new users confirm their email before signing in.
+Follow [delivery tracking setup](docs/delivery-tracking-setup.md): apply the additive tracking migration, deploy and configure the signed webhook, then deploy the sender. This repository includes tracking tables and webhook/sender source. The live agent/schedule schema, schedule RPC definition, and automatic worker still need to be connected separately. History counts only delivery confirmed by Meta and shows new messages after tracking is enabled. Agents save plans; automatic delivery requires the server worker. Keep WhatsApp credentials server-only; never put provider secrets in `VITE_` variables. If email confirmation is enabled in Supabase Auth, new users confirm their email before signing in.
 
 ## Commands
 
 - `npm run dev` — start the local development server.
 - `npm run build` — type-check and create a production build in `dist/`.
 - `npm run lint` — run Oxlint.
+- `npm test` — check sender/webhook behavior and PostgreSQL delivery ordering and access rules without sending real messages.
+- `npm run check:functions` — type-check server functions locally against the installed Supabase SDK.
 - `npm run preview` — preview the production build locally.

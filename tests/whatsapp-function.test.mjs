@@ -8,23 +8,33 @@ const source = readFileSync(new URL("../supabase/functions/send-whatsapp-message
   .replace(/^import .*;\s*/m, "");
 const code = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None } }).outputText;
 
-function harness({ user = { id: "user-1" }, contact = { name: "Alex Example", phone_number: "+27 82 123 4567" }, recipient = "27821234567", metaCode } = {}) {
+function harness({ user = { id: "user-1" }, contact = { name: "Alex Example", phone_number: "+27 82 123 4567" }, recipient = "27821234567", metaCode, trackingError = null, attachError = null, networkError = false } = {}) {
   let handler;
   const sends = [];
   const filters = [];
+  const updates = [];
+  const rpcs = [];
   const query = { select() { return this; }, eq(key, value) { filters.push([key, value]); return this; }, async maybeSingle() { return { data: contact, error: null }; } };
-  const env = { SUPABASE_URL: "https://example.supabase.co", SUPABASE_ANON_KEY: "anon", WHATSAPP_ACCESS_TOKEN: "secret", WHATSAPP_PHONE_NUMBER_ID: "phone-id", WHATSAPP_TEST_RECIPIENT: recipient };
+  const trackingQuery = {
+    select() { return this; }, insert(value) { updates.push(value); return this; },
+    update(value) { updates.push(value); return this; },
+    eq() { return Promise.resolve({ error: null }); },
+    limit: async () => ({ error: trackingError }),
+    single: async () => ({ data: trackingError ? null : { id: "attempt-1" }, error: trackingError }),
+  };
+  const env = { SUPABASE_URL: "https://example.supabase.co", SUPABASE_ANON_KEY: "anon", SUPABASE_SERVICE_ROLE_KEY: "service", WHATSAPP_ACCESS_TOKEN: "secret", WHATSAPP_PHONE_NUMBER_ID: "phone-id", WHATSAPP_TEST_RECIPIENT: recipient };
   vm.runInNewContext(code, {
     Deno: { env: { get: (key) => env[key] }, serve: (fn) => { handler = fn; } },
-    createClient: () => ({ auth: { getUser: async () => ({ data: { user }, error: null }) }, from: () => query }),
+    createClient: () => ({ auth: { getUser: async () => ({ data: { user }, error: null }) }, from: (table) => table === "contacts" ? query : trackingQuery, rpc: async (name, params) => { rpcs.push([name, params]); return { error: attachError }; } }),
     Request, Response, AbortSignal,
     console: { error() {} },
     fetch: async (_url, options) => {
       sends.push(JSON.parse(options.body));
+      if (networkError) throw new Error("Connection reset");
       return Response.json(metaCode ? { error: { code: metaCode } } : { messages: [{ id: "wamid.example" }] }, { status: metaCode ? 400 : 200 });
     },
   });
-  return { sends, filters, request: (body) => handler(new Request("https://example.test/send", {
+  return { sends, filters, updates, rpcs, request: (body) => handler(new Request("https://example.test/send", {
     method: "POST", headers: { Authorization: "Bearer test-session", Origin: "https://kinora-app-pi.vercel.app", "Content-Type": "application/json" }, body: JSON.stringify(body),
   })) };
 }
@@ -79,4 +89,29 @@ test("closed reply window gives an error without a fallback send", async () => {
   assert.equal(response.status, 502);
   assert.match((await response.json()).error, /reply window is closed/);
   assert.equal(h.sends.length, 1);
+  assert.equal(h.updates.at(-1).status, "failed");
+});
+test("tracking schema missing prevents sending", async () => {
+  const h = harness({ trackingError: { code: "42P01" } });
+  assert.equal((await h.request({ contactId, mode: "template" })).status, 503);
+  assert.equal(h.sends.length, 0);
+});
+test("successful send attaches provider ID for delivery updates", async () => {
+  const h = harness();
+  const result = await (await h.request({ contactId, mode: "template" })).json();
+  assert.equal(result.trackingId, "attempt-1");
+  assert.equal(h.rpcs[0][0], "kinora_attach_whatsapp_message");
+  assert.equal(h.rpcs[0][1].p_message_id, "wamid.example");
+});
+test("tracking failure after acceptance warns without encouraging duplicate send", async () => {
+  const h = harness({ attachError: { code: "connection" } });
+  const result = await (await h.request({ contactId, mode: "template" })).json();
+  assert.equal(result.success, true);
+  assert.match(result.trackingWarning, /before sending again/);
+  assert.equal(h.sends.length, 1);
+});
+test("ambiguous network outcome is unconfirmed rather than failed", async () => {
+  const h = harness({ networkError: true });
+  assert.equal((await h.request({ contactId, mode: "template" })).status, 502);
+  assert.equal(h.updates.at(-1).status, "unknown");
 });

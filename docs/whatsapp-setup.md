@@ -4,6 +4,8 @@ Agents remain Kinora's saved contact, personal message draft, notes, and next pl
 
 ## Enable custom sending
 
+For the current sender, complete [delivery tracking setup](delivery-tracking-setup.md) first. Its SQL and webhook setup now precede deploying the updated sender. The steps below describe the custom-message flow after tracking is connected.
+
 1. In Supabase, open Edge Functions → send-whatsapp-message → Code.
 2. Replace its code with `supabase/functions/send-whatsapp-message/index.ts` from this repository and deploy. Do this in the existing Kinora project, not in WhatsApp Manager.
 3. Keep the existing server secrets: WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_TEST_RECIPIENT. Supabase provides SUPABASE_URL and SUPABASE_ANON_KEY. Do not put these credentials in frontend code.
@@ -17,7 +19,7 @@ The greeting option sends the currently approved `kinora_daily_greeting` in lang
 
 ## Automatic schedules: next setup
 
-The frontend saves plans through the existing `sync_agent_scheduled_message` database function. This repository does not contain that function's definition, table migrations, a scheduled sender worker, or a working delivery webhook. Saving a plan and activating an agent do not establish automatic sending. Manual sending does not cancel or mark a saved plan as delivered.
+The frontend saves plans through the existing `sync_agent_scheduled_message` database function. This repository does not contain that function's definition, the live agent/schedule table migrations, or a scheduled sender worker. Delivery tracking has a separate additive migration and signed webhook. Saving a plan and activating an agent do not establish automatic sending. Manual sending does not cancel or mark a saved plan as delivered.
 
 Before connecting automatic delivery, obtain the SQL definitions and RLS policies for agents, contacts, scheduled_messages, delivery_logs and sync_agent_scheduled_message from the current Supabase project. Do not overwrite the live schema with guessed replacements.
 

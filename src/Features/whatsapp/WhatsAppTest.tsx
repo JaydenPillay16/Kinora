@@ -4,7 +4,7 @@ import { Clock3, LoaderCircle, MessageSquareText, Send } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
 import type { Contact } from "../contacts/types";
 
-export default function WhatsAppTest({ contacts, initialDraft }: { contacts: Contact[]; initialDraft?: { contactId: string; message: string; agentName: string } }) {
+export default function WhatsAppTest({ contacts, initialDraft, onSendComplete }: { contacts: Contact[]; initialDraft?: { contactId: string; message: string; agentName: string }; onSendComplete: () => void }) {
   const [selectedContactId, setSelectedContactId] = useState(initialDraft?.contactId ?? "");
   const [sendMode, setSendMode] = useState<"template" | "custom">(initialDraft ? "custom" : "template");
   const [customMessage, setCustomMessage] = useState(initialDraft?.message ?? "");
@@ -13,6 +13,7 @@ export default function WhatsAppTest({ contacts, initialDraft }: { contacts: Con
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState("");
   const [isError, setIsError] = useState(false);
+  const [messageId, setMessageId] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -29,6 +30,7 @@ export default function WhatsAppTest({ contacts, initialDraft }: { contacts: Con
     event.preventDefault();
     setResult("");
     setIsError(false);
+    setMessageId("");
 
     if (sending) return;
     if (sendMode === "custom" && (!customReady || !customMessage.trim() || customMessage.length > 4096)) {
@@ -94,8 +96,9 @@ export default function WhatsAppTest({ contacts, initialDraft }: { contacts: Con
       }
 
       setResult(
-        `WhatsApp API accepted the message. ID: ${data.messageId ?? "N/A"}`,
+        data.trackingWarning ?? "Accepted by WhatsApp. Delivery is not confirmed yet; check Message history for updates.",
       );
+      setMessageId(data.messageId ?? "");
     } catch (error) {
       setIsError(true);
       setResult(
@@ -103,6 +106,7 @@ export default function WhatsAppTest({ contacts, initialDraft }: { contacts: Con
       );
     } finally {
       setSending(false);
+      onSendComplete();
     }
   };
 
@@ -169,6 +173,7 @@ export default function WhatsAppTest({ contacts, initialDraft }: { contacts: Con
 
           {result && <p role={isError ? "alert" : "status"} className={`text-sm leading-5 ${isError ? "text-rose-600 dark:text-rose-300" : "text-emerald-700 dark:text-emerald-300"}`}>{result}</p>}
         </div>
+        {messageId && <details className="text-xs text-[var(--app-text-muted)]"><summary className="cursor-pointer">Message reference</summary><p className="mt-2 break-all">{messageId}</p></details>}
       </form>
     </section>
   );

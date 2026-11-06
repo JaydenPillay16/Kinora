@@ -31,6 +31,7 @@ import type { ScheduledMessage } from "./Features/scheduling/types";
 import { syncScheduledMessage } from "./Features/scheduling/schedulingService";
 import UpcomingMessages from "./Features/scheduling/UpcomingMessages";
 import WhatsAppTest from "./Features/whatsapp/WhatsAppTest";
+import MessageHistory from "./Features/whatsapp/MessageHistory";
 
 function App() {
   const { notify, confirm } = useFeedback();
@@ -41,6 +42,7 @@ function App() {
 
   const [scheduledMessageCount, setScheduledMessageCount] = useState(0);
   const [sentMessageCount, setSentMessageCount] = useState(0);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("overview");
@@ -165,19 +167,11 @@ function App() {
     let isMounted = true;
 
     async function loadMessageStats() {
-      const [scheduledResult, sentResult] = await Promise.all([
-        supabase
+      const scheduledResult = await supabase
           .from("scheduled_messages")
           .select("id", { count: "exact", head: true })
           .eq("user_id", session!.user.id)
-          .eq("status", "pending"),
-
-        supabase
-          .from("delivery_logs")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", session!.user.id)
-          .eq("status", "sent"),
-      ]);
+          .eq("status", "pending");
 
       if (!isMounted) return;
 
@@ -191,15 +185,6 @@ function App() {
         setScheduledMessageCount(scheduledResult.count ?? 0);
       }
 
-      if (sentResult.error) {
-        console.error(
-          "Failed to load sent message count:",
-          sentResult.error.message,
-        );
-        notify("Could not load your delivered-message total.", "error");
-      } else {
-        setSentMessageCount(sentResult.count ?? 0);
-      }
     }
 
     void loadMessageStats();
@@ -891,9 +876,9 @@ function App() {
                   iconBg: "bg-[var(--app-accent)]/10",
                 },
                 {
-                  label: "Messages sent",
+                  label: "Messages delivered",
                   value: sentMessageCount,
-                  detail: "Successfully delivered",
+                  detail: "Confirmed by WhatsApp",
                   icon: Send,
                   accent: "text-[var(--app-accent)]",
                   iconBg: "bg-[var(--app-accent)]/10",
@@ -1127,27 +1112,14 @@ function App() {
                   Your activity
                 </p>
                 <h2 className="text-2xl font-bold tracking-[-0.035em] text-[var(--app-text)] sm:text-[26px]">Message history</h2>
-                <p className="mt-1.5 text-sm text-[var(--app-text-muted)]">A simple view of the moments you have already sent.</p>
+                <p className="mt-1.5 text-sm text-[var(--app-text-muted)]">Follow new messages from acceptance to delivery. Read receipts appear when WhatsApp provides them.</p>
               </div>
-              <div className="history-summary surface flex flex-col gap-5 rounded-[24px] p-5 sm:flex-row sm:items-center sm:p-7">
-                <span className="history-icon flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-[var(--app-accent)]"><Send size={23} strokeWidth={1.8} aria-hidden="true" /></span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-lg font-semibold tracking-tight text-[var(--app-text)]">
-                    {sentMessageCount === 0 ? "Your sent messages will appear here." : `${sentMessageCount} ${sentMessageCount === 1 ? "message has" : "messages have"} been delivered.`}
-                  </p>
-                  <p className="mt-1.5 max-w-2xl text-sm leading-6 text-[var(--app-text-muted)]">
-                    {sentMessageCount === 0
-                      ? "Once a planned message is delivered, you will see your sent-message total here."
-                      : "This total reflects messages marked as sent. A detailed delivery timeline is coming soon."}
-                  </p>
-                </div>
-                <span className="history-total shrink-0 tabular-nums">{sentMessageCount.toLocaleString("en-ZA")}</span>
-              </div>
+              <MessageHistory userId={session.user.id} refreshKey={historyRefreshKey} onDeliveredCount={setSentMessageCount} />
             </section>
 
             {/* WhatsApp Cloud API integration test */}
             <section id="whatsapp-composer" className="mt-10 scroll-mt-28">
-              <WhatsAppTest key={sendDraft?.key ?? "manual"} contacts={contacts} initialDraft={sendDraft ?? undefined} />
+              <WhatsAppTest key={sendDraft?.key ?? "manual"} contacts={contacts} initialDraft={sendDraft ?? undefined} onSendComplete={() => setHistoryRefreshKey((value) => value + 1)} />
             </section>
           </div>
         </main>

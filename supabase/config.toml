@@ -1,0 +1,3 @@
+# Meta cannot supply a Supabase user token. The webhook verifies Meta's HMAC signature in code.
+[functions.whatsapp-webhook]
+verify_jwt = false
