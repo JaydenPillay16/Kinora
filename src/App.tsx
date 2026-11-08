@@ -2,16 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
   Bot,
-  CalendarClock,
   ChevronRight,
-  Heart,
   Clock3,
   LoaderCircle,
   LogOut,
   Plus,
   UserRoundPlus,
-  Send,
-  UsersRound,
 } from "lucide-react";
 
 import Sidebar from "./Components/layout/Sidebar";
@@ -755,7 +751,7 @@ function App() {
             className="absolute inset-0 h-full w-full bg-black/40 backdrop-blur-[2px]"
           />
 
-          <div className="app-transition absolute inset-y-0 left-0 max-w-[85vw] overflow-y-auto shadow-2xl">
+          <div className="app-transition absolute inset-y-0 left-0 max-w-[85vw] overflow-y-auto">
             <Sidebar activeSection={activeSection} onNavigate={() => setIsMobileMenuOpen(false)} />
           </div>
         </div>
@@ -778,30 +774,20 @@ function App() {
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-9">
           <div className="mx-auto max-w-[1440px]">
             {/* Welcome section */}
-            <div id="overview" className="dashboard-intro scroll-mt-28 relative flex flex-col gap-7 overflow-hidden rounded-[28px] border border-[var(--app-border)] px-6 py-7 sm:px-8 sm:py-8 lg:flex-row lg:items-end lg:justify-between lg:px-10 lg:py-9">
+            <div id="overview" className="dashboard-intro scroll-mt-28 relative flex flex-col gap-7 overflow-hidden rounded-2xl border border-[var(--app-border)] px-6 py-7 sm:px-8 sm:py-8 lg:flex-row lg:items-end lg:justify-between lg:px-10 lg:py-9">
               <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-24 h-72 w-72 rounded-full bg-[var(--app-accent)] opacity-[0.10] blur-3xl" />
-              <div aria-hidden="true" className="pointer-events-none absolute bottom-0 right-[22%] h-px w-1/3 bg-gradient-to-r from-transparent via-[var(--app-accent)]/30 to-transparent" />
               <div className="min-w-0">
-                <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)]/70 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)]">
-                  <span className="hero-date-dot h-1.5 w-1.5 rounded-full bg-[var(--app-accent)] shadow-[0_0_10px_var(--app-accent)]" />
+                <p className="mb-4 inline-flex items-center gap-2 rounded-md border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-xs font-medium text-[var(--app-text-muted)]">
                   {pageOpenedAt.toLocaleDateString("en-ZA", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
                 </p>
 
-                <p className="mb-1 text-sm font-medium text-[var(--app-text-muted)]">Your personal workspace</p>
-                <h2 className="greeting-title mt-1 flex flex-wrap gap-x-[0.22em] text-4xl font-bold tracking-[-0.045em] text-[var(--app-text)] sm:text-5xl">
-                  {(pageOpenedAt.getHours() < 12
-                    ? "Good morning!"
-                    : pageOpenedAt.getHours() < 18
-                      ? "Good afternoon!"
-                      : "Good evening!"
-                  ).split(" ").map((word, index) => (
-                    <span key={word} className="greeting-word" style={{ animationDelay: `${index * 110}ms` }}>{word}</span>
-                  ))}
+                <p className="mb-1 text-sm font-medium text-[var(--app-text-muted)]">Your people and plans</p>
+                <h2 className="greeting-title mt-1 text-4xl font-medium tracking-[-0.035em] text-[var(--app-text)] sm:text-5xl">
+                  Your circle
                 </h2>
 
                 <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--app-text-muted)] sm:text-base">
-                  A little more thought, a little more connection. Here's your
-                  overview of the people and messages that matter.
+                  Keep important details close and make time for the messages you plan to send.
                 </p>
               </div>
 
@@ -816,7 +802,7 @@ function App() {
                       notify("Could not sign out. Please try again.", "error");
                     }
                   }}
-                  className="hero-secondary-action group inline-flex items-center gap-2 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)]/75 px-4 py-3 text-sm font-semibold text-[var(--app-text-muted)] shadow-sm transition hover:-translate-y-0.5 hover:bg-[var(--app-surface)] hover:text-[var(--app-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+                  className="hero-secondary-action group inline-flex items-center gap-2 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3 text-sm font-medium text-[var(--app-text-muted)] hover:bg-[var(--app-surface-secondary)] hover:text-[var(--app-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
                 >
                   <LogOut size={16} className="hero-button-icon" aria-hidden="true" />
                   Sign out
@@ -828,7 +814,7 @@ function App() {
                     setEditingAgent(null);
                     setIsCreatingAgent(true);
                   }}
-                  className="primary-action hero-primary-action group inline-flex items-center justify-center gap-2.5 rounded-2xl bg-[var(--app-primary)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-950/15 transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+                    className="primary-action hero-primary-action group inline-flex items-center justify-center gap-2.5 rounded-lg bg-[var(--app-primary)] px-5 py-3 text-sm font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
                 >
                   <span aria-hidden="true" className="hero-plus flex h-6 w-6 items-center justify-center rounded-lg bg-white/15">
                     <Plus size={16} strokeWidth={2.3} />
@@ -862,109 +848,65 @@ function App() {
                   label: "Active agents",
                   value: agents.filter((agent) => agent.status === "active")
                     .length,
-                  detail: "Your personal assistants",
-                  icon: Bot,
-                  accent: "text-[var(--app-accent)]",
-                  iconBg: "bg-[var(--app-accent)]/10",
+                  detail: "Currently active",
                 },
                 {
                   label: "Scheduled messages",
                   value: scheduledMessageCount,
-                  detail: "Messages awaiting delivery",
-                  icon: CalendarClock,
-                  accent: "text-[var(--app-accent)]",
-                  iconBg: "bg-[var(--app-accent)]/10",
+                  detail: "Saved plans awaiting delivery",
                 },
                 {
                   label: "Messages delivered",
                   value: sentMessageCount,
                   detail: "Confirmed by WhatsApp",
-                  icon: Send,
-                  accent: "text-[var(--app-accent)]",
-                  iconBg: "bg-[var(--app-accent)]/10",
                 },
                 {
                   label: "Contacts",
                   value: contacts.length,
-                  detail: "People who matter to you",
-                  icon: UsersRound,
-                  accent: "text-[var(--app-accent)]",
-                  iconBg: "bg-[var(--app-accent)]/10",
+                  detail: "Saved people",
                 },
               ].map((stat) => {
-                const Icon = stat.icon;
-
                 return (
-                  <section
-                    key={stat.label}
-                    className="stat-card surface surface-hover group relative overflow-hidden rounded-[22px] border border-[var(--app-border)] p-5 sm:p-6"
-                  >
-                    <div className="flex items-start justify-between gap-3">
+                  <section key={stat.label} className="stat-card surface relative overflow-hidden rounded-xl border border-[var(--app-border)] p-5">
                       <div>
                         <p className="text-sm font-medium text-[var(--app-text-muted)]">
                           {stat.label}
                         </p>
 
-                        <p className="mt-5 text-4xl font-bold tracking-[-0.04em] text-[var(--app-text)] tabular-nums">
+                        <p className="mt-4 text-3xl font-medium tracking-[-0.03em] text-[var(--app-text)] tabular-nums">
                           {stat.value}
                         </p>
                       </div>
-
-                      <span
-                        className={`stat-icon-tile flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${stat.accent}`}
-                      >
-                        <Icon className="stat-glyph" size={21} strokeWidth={1.9} />
-                      </span>
-                    </div>
-
-                    <div className="mt-4 flex items-center gap-2">
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${stat.iconBg.replace("/10", "")}`}
-                      />
-
+                    <div className="mt-3 border-t border-[var(--app-border)] pt-3">
                       <p className="text-xs leading-5 text-[var(--app-text-muted)]">
                         {stat.detail}
                       </p>
                     </div>
-
-                    <div
-                      aria-hidden="true"
-                      className="absolute inset-x-0 bottom-0 h-[2px] origin-left scale-x-0 bg-[var(--app-accent)] transition-transform duration-300 group-hover:scale-x-100"
-                    />
                   </section>
                 );
               })}
             </div>
 
             {/* Welcome card */}
-            <section className="welcome-card surface relative mt-6 overflow-hidden rounded-[28px] border border-[var(--app-border)] p-6 sm:p-8 lg:p-10">
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-[var(--app-accent)] opacity-[0.08] blur-3xl"
-              />
-
+            <section className="welcome-card surface relative mt-6 overflow-hidden rounded-2xl border border-[var(--app-border)] p-6 sm:p-8 lg:p-10">
               <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                 <div className="max-w-2xl">
-                  <div aria-hidden="true" className="welcome-heart-mark relative flex h-14 w-14 items-center justify-center rounded-[19px]">
-                    <Heart className="welcome-heart-glyph" size={27} strokeWidth={1.7} fill="currentColor" />
-                  </div>
-
-                  <p className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">
+                  <p className="text-sm font-medium text-[var(--app-accent)]">
                     {agents.length === 0
-                      ? "A thoughtful start"
+                      ? "A place for your people"
                       : "Your Kinora workspace"}
                   </p>
 
-                  <h3 className="mt-2 text-xl font-bold tracking-tight text-[var(--app-text)] sm:text-2xl">
+                  <h3 className="mt-2 text-xl font-medium text-[var(--app-text)] sm:text-2xl">
                     {agents.length === 0
-                      ? "Make staying connected a little easier."
-                      : "Small moments make meaningful connections."}
+                      ? "Start with the person on your mind"
+                      : "Keep the next message in view"}
                   </h3>
 
                   <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--app-text-muted)]">
                     {agents.length === 0
-                      ? "Create your first messaging agent to plan thoughtful messages, organise your schedule, and keep the people who matter close."
-                      : "Manage your messaging assistants, review upcoming plans, and keep the important people in your life in mind."}
+                      ? "Add someone to your contacts, then save a message draft or plan a time to reach out."
+                      : "Review your saved drafts, upcoming plans, and the people you want to keep in touch with."}
                   </p>
                 </div>
 
@@ -974,7 +916,7 @@ function App() {
                     setEditingAgent(null);
                     setIsCreatingAgent(true);
                   }}
-                    className="relative inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-3 text-sm font-semibold text-[var(--app-text)] shadow-sm transition hover:-translate-y-0.5 hover:bg-[var(--app-surface-secondary)] hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] sm:self-center"
+                    className="relative inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-3 text-sm font-medium text-[var(--app-text)] sm:self-center"
                 >
                   {agents.length === 0
                     ? "Create your first agent"
@@ -989,21 +931,20 @@ function App() {
             <section id="agents" className="agent-section content-section mt-10 scroll-mt-28">
               <div className="mb-5 flex items-end justify-between gap-4">
                 <div>
-                  <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--app-accent)]">
+                  <p className="mb-2 flex items-center gap-2 text-sm font-medium text-[var(--app-accent)]">
                     <Bot size={14} strokeWidth={2} aria-hidden="true" />
-                    Your assistants
+                    Your message plans
                   </p>
-                  <h2 className="text-2xl font-bold tracking-[-0.035em] text-[var(--app-text)] sm:text-[26px]">
-                    My Agents
+                  <h2 className="text-2xl font-medium text-[var(--app-text)] sm:text-[26px]">
+                    My agents
                   </h2>
 
                   <p className="mt-1.5 text-sm text-[var(--app-text-muted)]">
-                    Personal messaging assistants, built around the people you care about.
+                    Draft messages and plan when to reach out.
                   </p>
                 </div>
 
-                <span className="agent-count-badge inline-flex shrink-0 items-center gap-2 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] px-3.5 py-2 text-xs font-semibold text-[var(--app-text-muted)] shadow-sm">
-                  <Bot size={14} className="text-[var(--app-accent)]" aria-hidden="true" />
+                <span className="agent-count-badge inline-flex shrink-0 items-center gap-2 rounded-md border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-xs font-medium text-[var(--app-text-muted)]">
                   {agents.length} {agents.length === 1 ? "agent" : "agents"}
                 </span>
               </div>
@@ -1039,27 +980,25 @@ function App() {
             <section id="contacts" className="content-section mt-12 scroll-mt-28">
               <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div className="min-w-0">
-                  <p className="inline-flex items-center gap-2 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--app-accent)]">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--app-accent)] shadow-[0_0_10px_var(--app-accent)]" />
-                    Your personal circle
+                  <p className="inline-flex items-center gap-2 rounded-md border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-xs font-medium text-[var(--app-text-muted)]">
+                    Your circle
                   </p>
 
-                  <h2 className="mt-3 text-2xl font-bold tracking-[-0.035em] text-[var(--app-text)] sm:text-[28px]">
-                    My Contacts
+                  <h2 className="mt-3 text-2xl font-medium text-[var(--app-text)] sm:text-[28px]">
+                    Contacts
                   </h2>
 
                   <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--app-text-muted)]">
-                    Keep the important people in your life organised, with their
-                    details and the little things you want to remember.
+                    Keep their details and the things you want to remember in one place.
                   </p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => setIsCreatingContact(true)}
-                  className="contact-add-action group relative inline-flex items-center justify-center gap-2.5 self-start overflow-hidden rounded-2xl px-5 py-3.5 text-sm font-semibold shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] sm:self-auto"
+                  className="contact-add-action group relative inline-flex items-center justify-center gap-2 self-start overflow-hidden rounded-lg px-4 py-3 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] sm:self-auto"
                 >
-                  <span aria-hidden="true" className="contact-add-icon flex h-6 w-6 items-center justify-center rounded-lg bg-white/15 transition duration-300 group-hover:rotate-[-8deg] group-hover:scale-110">
+                  <span aria-hidden="true" className="contact-add-icon flex h-5 w-5 items-center justify-center">
                     <UserRoundPlus size={16} strokeWidth={2} />
                   </span>
                   <span>Add contact</span>
@@ -1107,12 +1046,12 @@ function App() {
 
             <section id="history" className="history-section mt-12 scroll-mt-28">
               <div className="mb-5">
-                <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--app-accent)]">
+                <p className="mb-2 flex items-center gap-2 text-sm font-medium text-[var(--app-accent)]">
                   <Clock3 size={14} aria-hidden="true" />
                   Your activity
                 </p>
-                <h2 className="text-2xl font-bold tracking-[-0.035em] text-[var(--app-text)] sm:text-[26px]">Message history</h2>
-                <p className="mt-1.5 text-sm text-[var(--app-text-muted)]">Follow new messages from acceptance to delivery. Read receipts appear when WhatsApp provides them.</p>
+                <h2 className="text-2xl font-medium text-[var(--app-text)] sm:text-[26px]">Message history</h2>
+                <p className="mt-1.5 text-sm text-[var(--app-text-muted)]">Check whether WhatsApp accepted, sent, delivered, or read a message.</p>
               </div>
               <MessageHistory userId={session.user.id} refreshKey={historyRefreshKey} onDeliveredCount={setSentMessageCount} />
             </section>

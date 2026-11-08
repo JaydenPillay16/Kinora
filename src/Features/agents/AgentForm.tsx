@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import type { Agent } from "./types";
 import type { Contact } from "../contacts/types";
-import { ArrowRight, LoaderCircle } from "lucide-react";
+import { ArrowRight, Bot, LoaderCircle } from "lucide-react";
 
 interface AgentFormProps {
   contacts: Contact[];
@@ -107,15 +107,15 @@ function AgentForm({
     <section className="surface p-5 sm:p-8">
       {/* Form heading */}
       <div className="mb-8 border-b border-[var(--app-border)] pb-6">
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface-secondary)] text-xl text-[var(--app-accent)]">
-          ✳
+        <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-secondary)] text-[var(--app-accent)]">
+          <Bot size={18} strokeWidth={1.7} aria-hidden="true" />
         </div>
 
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">
+        <p className="text-sm font-medium text-[var(--app-accent)]">
           Agent configuration
         </p>
 
-        <h2 className="mt-2 text-2xl font-bold tracking-tight text-[var(--app-text)] sm:text-3xl">
+        <h2 className="mt-2 text-2xl font-medium text-[var(--app-text)] sm:text-3xl">
           {isEditing ? "Edit your agent" : "Create a messaging agent"}
         </h2>
 
@@ -331,7 +331,7 @@ function AgentForm({
           <button
             type="submit"
             disabled={isSaving}
-            className="form-primary-action app-transition inline-flex items-center gap-2 rounded-xl bg-[var(--app-primary)] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:translate-y-0 disabled:opacity-60 dark:text-[#0b1713]"
+            className="form-primary-action app-transition inline-flex items-center gap-2 rounded-lg bg-[var(--app-primary)] px-5 py-3 text-sm font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:opacity-60 dark:text-[#0b1713]"
           >
             {isSaving ? <><LoaderCircle size={16} className="animate-spin" />Saving agent…</> : <>{isEditing ? "Save changes" : "Create agent"}<ArrowRight size={16} /></>}
           </button>

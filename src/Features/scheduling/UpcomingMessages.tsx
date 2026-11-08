@@ -26,51 +26,46 @@ function UpcomingMessages({ messages, isLoading, loadError, onRetry, onCancel, o
     <section id="schedule" className="upcoming-section mt-12 scroll-mt-28">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--app-accent)]">
+          <p className="mb-2 flex items-center gap-2 text-sm font-medium text-[var(--app-accent)]">
             <CalendarClock size={14} aria-hidden="true" />
-            On the horizon
+            Schedule
           </p>
-          <h2 className="text-2xl font-bold tracking-[-0.035em] text-[var(--app-text)] sm:text-[26px]">Upcoming messages</h2>
-          <p className="mt-1.5 text-sm text-[var(--app-text-muted)]">Thoughtful messages planned for the people who matter.</p>
+          <h2 className="text-2xl font-medium text-[var(--app-text)] sm:text-[26px]">Upcoming messages</h2>
+          <p className="mt-1.5 text-sm text-[var(--app-text-muted)]">Saved plans for reaching out.</p>
         </div>
 
-        <span className="schedule-count inline-flex items-center gap-2 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] px-3.5 py-2 text-xs font-semibold text-[var(--app-text-muted)] shadow-sm">
+        <span className="schedule-count inline-flex items-center gap-2 rounded-md border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-xs font-medium text-[var(--app-text-muted)]">
           <span className="schedule-count-dot h-1.5 w-1.5 rounded-full bg-[var(--app-accent)]" />
-          {messages.length} {messages.length === 1 ? "message" : "pending"}
+          {messages.length} {messages.length === 1 ? "message" : "messages"}
         </span>
       </div>
 
       <p className="mb-5 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 text-sm leading-6 text-[var(--app-text-muted)]">These are saved plans. Automatic delivery still needs the server scheduler connected. Custom text also needs an open WhatsApp 24-hour reply window at the sending time; approved templates support outreach outside that window.</p>
 
       {isLoading ? (
-        <div className="surface rounded-[24px] p-6 sm:p-8" aria-live="polite">
-          <div className="flex animate-pulse items-center gap-4">
-            <div className="h-14 w-14 rounded-2xl bg-[var(--app-surface-secondary)]" />
-            <div className="flex-1 space-y-3"><div className="h-3 w-1/3 rounded-full bg-[var(--app-surface-secondary)]" /><div className="h-3 w-2/3 rounded-full bg-[var(--app-surface-secondary)]" /></div>
-          </div>
+        <div className="surface rounded-xl p-5" aria-live="polite">
+          <p className="text-sm text-[var(--app-text-muted)]">Loading upcoming messages…</p>
         </div>
       ) : loadError ? (
         <LoadError title="Upcoming messages" onRetry={onRetry} />
       ) : messages.length === 0 ? (
         <div className="schedule-empty relative isolate overflow-hidden rounded-[26px] border border-[var(--app-border)] p-6 sm:p-8 lg:p-10">
-          <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-24 -z-10 h-80 w-80 rounded-full bg-[var(--app-accent)] opacity-[0.08] blur-3xl" />
-          <div aria-hidden="true" className="schedule-orbit pointer-events-none absolute right-16 top-1/2 hidden h-52 w-52 -translate-y-1/2 rounded-full border border-[var(--app-accent)]/10 lg:block" />
 
           <div className="relative flex flex-col gap-8 lg:min-h-[210px] lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-xl">
-              <div className="schedule-empty-icon mb-6 flex h-14 w-14 items-center justify-center rounded-[19px] text-[var(--app-accent)] shadow-lg"><MessageCircle size={25} strokeWidth={1.7} /></div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--app-accent)]">Make room for a moment</p>
-              <h3 className="mt-2 text-2xl font-bold tracking-[-0.04em] text-[var(--app-text)] sm:text-[28px]">A thoughtful note, right on time.</h3>
+              <div className="schedule-empty-icon mb-4 flex h-10 w-10 items-center justify-center rounded-lg text-[var(--app-accent)]"><MessageCircle size={19} strokeWidth={1.7} /></div>
+              <p className="text-sm font-medium text-[var(--app-accent)]">Schedule</p>
+              <h3 className="mt-2 text-2xl font-medium text-[var(--app-text)] sm:text-[28px]">No messages planned yet</h3>
               <p className="mt-3 max-w-lg text-sm leading-7 text-[var(--app-text-muted)] sm:text-[15px]">
-                Your upcoming messages will gather here. Set up an agent with a future date and Kinora will keep your plan in view.
+                Add a future date to an agent to keep a message plan in this list.
               </p>
             </div>
 
             <div className="relative flex shrink-0 flex-col items-start gap-3 lg:mr-2">
-              <button type="button" onClick={onCreatePlan} className="schedule-create-action group inline-flex items-center gap-3 rounded-2xl px-5 py-3.5 text-sm font-semibold shadow-lg transition hover:-translate-y-1 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]">
-                <span className="schedule-create-icon flex h-7 w-7 items-center justify-center rounded-lg bg-white/15"><CalendarDays size={16} /></span>
+              <button type="button" onClick={onCreatePlan} className="schedule-create-action group inline-flex items-center gap-2 rounded-lg px-4 py-3 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]">
+                <CalendarDays size={16} />
                 Plan a message
-                <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+                <ArrowRight size={15} />
               </button>
               <p className="pl-1 text-xs text-[var(--app-text-muted)]">Choose a person and a time to reach out</p>
             </div>
@@ -79,19 +74,19 @@ function UpcomingMessages({ messages, isLoading, loadError, onRetry, onCancel, o
       ) : (
         <div className="relative space-y-4">
           <span aria-hidden="true" className="schedule-timeline absolute bottom-7 left-[27px] top-7 hidden w-px sm:block" />
-          {messages.map((message, index) => {
+          {messages.map((message) => {
             const scheduled = formatScheduledDate(message.scheduledAt);
             return (
-              <article key={message.id} className="schedule-card surface group relative overflow-hidden rounded-[23px] p-5 sm:p-6" style={{ animationDelay: `${Math.min(index, 5) * 65}ms` }}>
+              <article key={message.id} className="schedule-card surface group relative overflow-hidden rounded-xl p-5 sm:p-6">
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
                   <div className="schedule-date-tile relative z-[1] flex h-[62px] w-[62px] shrink-0 flex-col items-center justify-center rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)]">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.13em] text-[var(--app-accent)]">{scheduled.month}</span>
-                    <span className="text-xl font-bold leading-6 tracking-tight text-[var(--app-text)] tabular-nums">{scheduled.day}</span>
+                    <span className="text-xs font-medium text-[var(--app-accent)]">{scheduled.month}</span>
+                    <span className="text-lg font-medium leading-6 text-[var(--app-text)] tabular-nums">{scheduled.day}</span>
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                      <span className="schedule-status inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em]"><span className="schedule-count-dot h-1.5 w-1.5 rounded-full bg-current" />Pending</span>
+                      <span className="schedule-status inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium"><span className="schedule-count-dot h-1.5 w-1.5 rounded-full bg-current" />Pending</span>
                       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--app-text-muted)]"><Clock3 size={13} aria-hidden="true" />{scheduled.fullDate} · {scheduled.time}</span>
                     </div>
                     <h3 className="mt-3 text-lg font-semibold tracking-tight text-[var(--app-text)]">{message.contactName}</h3>

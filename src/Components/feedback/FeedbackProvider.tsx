@@ -57,7 +57,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
         <div className="app-dialog-backdrop" onKeyDown={(event) => { if (event.key === "Escape") finishConfirmation(false); }} onMouseDown={(event) => { if (event.target === event.currentTarget) finishConfirmation(false); }}>
           <section className="app-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-message">
             <span className={`app-confirm-icon ${confirmation.danger ? "is-danger" : ""}`}><ShieldAlert size={21} aria-hidden="true" /></span>
-            <h2 id="confirm-title" className="mt-5 text-xl font-bold tracking-tight text-[var(--app-text)]">{confirmation.title}</h2>
+            <h2 id="confirm-title" className="mt-5 text-xl font-medium tracking-tight text-[var(--app-text)]">{confirmation.title}</h2>
             <p id="confirm-message" className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">{confirmation.message}</p>
             <div className="mt-7 flex flex-col-reverse justify-end gap-3 sm:flex-row">
               <button type="button" autoFocus onClick={() => finishConfirmation(false)} className="app-confirm-cancel rounded-xl border border-[var(--app-border)] px-4 py-2.5 text-sm font-semibold text-[var(--app-text)] transition hover:bg-[var(--app-surface-secondary)]">{confirmation.cancelLabel ?? "Keep it"}</button>

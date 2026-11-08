@@ -111,10 +111,10 @@ export default function WhatsAppTest({ contacts, initialDraft, onSendComplete }:
   };
 
   return (
-    <section className="surface space-y-5 rounded-[24px] p-5 sm:p-7">
+    <section className="surface space-y-5 rounded-2xl p-5 sm:p-7">
       <div>
-        <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--app-accent)]">Send a personal note</p>
-        <h2 className="text-xl font-semibold tracking-tight">Send on WhatsApp</h2>
+        <p className="mb-2 text-sm font-medium text-[var(--app-accent)]">WhatsApp</p>
+        <h2 className="text-xl font-medium tracking-tight">Send a message</h2>
         <p className="muted-text mt-1 text-sm">
           {initialDraft ? `Review the message from ${initialDraft.agentName}. Sending now does not change its saved plan.` : "Choose a contact, review your message, and send when you are ready."}
         </p>
@@ -123,7 +123,7 @@ export default function WhatsAppTest({ contacts, initialDraft, onSendComplete }:
       <form onSubmit={sendTestMessage} className="grid gap-4">
         <fieldset disabled={sending} className="grid min-w-0 gap-4 disabled:opacity-70">
         <div className="space-y-2">
-          <label htmlFor="whatsapp-test-contact" className="block text-sm font-semibold text-[var(--app-text)]">Test recipient</label>
+          <label htmlFor="whatsapp-test-contact" className="block text-sm font-medium text-[var(--app-text)]">Recipient</label>
           <select id="whatsapp-test-contact" required value={selectedContactId} onChange={(event) => setSelectedContactId(event.target.value)} className="auth-input w-full rounded-xl border px-4 py-3 text-sm outline-none transition">
             <option value="">Choose a saved contact</option>
             {contacts.filter((contact) => contact.phoneNumber.trim()).map((contact) => (
@@ -158,16 +158,16 @@ export default function WhatsAppTest({ contacts, initialDraft, onSendComplete }:
             <p className="block text-sm font-semibold text-[var(--app-text)]">Greeting preview</p>
             <p className="text-xs text-[var(--app-text-muted)]">Meta sends the currently approved version of kinora_daily_greeting. This preview may differ while your edit is under review.</p>
             <div className="auth-input min-h-[108px] rounded-xl border px-4 py-3 text-sm leading-6" aria-live="polite">
-              Good morning, {contacts.find((contact) => contact.id === selectedContactId)?.name.trim().split(/\s+/)[0] || "there"}! ☀️💚<br />
-              Wishing you a wonderful day ahead. Hope today brings you happiness and positivity!<br />
-              Sent with love through Kinora.<br /><span className="text-[var(--app-text-muted)]">Thanks</span>
+              Good morning, {contacts.find((contact) => contact.id === selectedContactId)?.name.trim().split(/\s+/)[0] || "there"}.<br />
+              Wishing you a good day. I hope something makes you smile.<br />
+              <span className="text-[var(--app-text-muted)]">Sent with Kinora</span>
             </div>
           </>}
         </div>
         </fieldset>
 
         <div className="flex flex-col items-start gap-3 lg:col-span-2 sm:flex-row sm:items-center">
-          <button type="submit" disabled={sending || (sendMode === "custom" && !customReady)} className="auth-submit inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60">
+          <button type="submit" disabled={sending || (sendMode === "custom" && !customReady)} className="auth-submit inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium disabled:opacity-60">
             {sending ? <><LoaderCircle size={16} className="animate-spin" />Sending…</> : <><Send size={15} />{sendMode === "custom" ? "Send custom message" : "Send greeting"}</>}
           </button>
 

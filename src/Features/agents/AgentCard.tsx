@@ -37,15 +37,15 @@ function AgentCard({
     : null;
 
   return (
-    <article className="agent-detail-card surface group flex h-full flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <article className="agent-detail-card surface group flex h-full flex-col overflow-hidden">
       <div className="p-5 sm:p-6">
         <div className="flex items-start gap-3">
-          <div className="agent-avatar flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-lg font-bold ring-1 ring-[var(--app-border)]">
+          <div className="agent-avatar flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-base font-medium ring-1 ring-[var(--app-border)]">
             {agent.name.charAt(0).toUpperCase()}
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">
-            <h3 className="truncate font-semibold tracking-tight text-[var(--app-text)]">
+            <h3 className="truncate font-medium tracking-tight text-[var(--app-text)]">
               {agent.name}
             </h3>
 
@@ -55,7 +55,7 @@ function AgentCard({
           </div>
 
           <span
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold capitalize ring-1 ring-inset ${statusStyles[agent.status]}`}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium capitalize ring-1 ring-inset ${statusStyles[agent.status]}`}
           >
             <span
               className={`h-1.5 w-1.5 rounded-full ${
@@ -77,7 +77,7 @@ function AgentCard({
         <div className="agent-schedule mt-5 rounded-2xl border border-[var(--app-border)] p-4">
           <div className="flex items-center gap-2">
             <CalendarClock size={15} className="text-[var(--app-accent)]" aria-hidden="true" />
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--app-text-muted)]">
+              <p className="text-xs font-medium text-[var(--app-text-muted)]">
               Planned message
             </p>
           </div>

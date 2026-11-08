@@ -15,7 +15,7 @@ export default function LoadError({ title, onRetry }: LoadErrorProps) {
           <p className="mt-1 text-sm text-[var(--app-text-muted)]">Check your connection and try again.</p>
         </div>
       </div>
-      <button type="button" onClick={onRetry} className="load-error-retry inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-[var(--app-border)] px-4 py-2.5 text-sm font-semibold text-[var(--app-text)] transition hover:-translate-y-0.5 hover:bg-[var(--app-surface-secondary)] sm:self-auto">
+      <button type="button" onClick={onRetry} className="load-error-retry inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-lg border border-[var(--app-border)] px-4 py-2.5 text-sm font-medium text-[var(--app-text)] hover:bg-[var(--app-surface-secondary)] sm:self-auto">
         <RefreshCw size={15} />Try again
       </button>
     </div>

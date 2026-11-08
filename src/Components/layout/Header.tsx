@@ -1,7 +1,6 @@
 
 import {
   Bell,
-  ChevronRight,
   Menu,
   X,
 } from "lucide-react";
@@ -18,7 +17,7 @@ interface HeaderProps {
 const sectionLabels: Record<string, string> = {
   overview: "Overview",
   analytics: "Analytics",
-  agents: "My Agents",
+  agents: "My agents",
   contacts: "Contacts",
   schedule: "Schedule",
   history: "History",
@@ -26,7 +25,7 @@ const sectionLabels: Record<string, string> = {
 
 function Header({ onMenuClick, isMobileMenuOpen, activeSection, onNotificationsClick }: HeaderProps) {
   return (
-    <header className="app-transition sticky top-0 z-30 flex min-h-[78px] items-center justify-between gap-3 border-b border-[var(--app-border)] bg-[var(--app-surface)]/85 px-4 backdrop-blur-2xl sm:px-6 lg:px-8">
+    <header className="app-transition sticky top-0 z-30 flex min-h-16 items-center justify-between gap-3 border-b border-[var(--app-border)] bg-[var(--app-surface)] px-4 sm:px-6 lg:px-8">
       <div className="flex min-w-0 items-center gap-3">
         <button
           type="button"
@@ -43,18 +42,9 @@ function Header({ onMenuClick, isMobileMenuOpen, activeSection, onNotificationsC
         </div>
 
         <div className="min-w-0">
-          <nav
-            aria-label="Breadcrumb"
-            className="mb-1 flex items-center gap-1.5 text-[11px] font-medium"
-          >
-            <span className="text-[var(--app-text-muted)]">Workspace</span>
-            <ChevronRight size={13} aria-hidden="true" className="text-[var(--app-text-muted)]" />
-            <span className="font-semibold text-[var(--app-accent)]">{sectionLabels[activeSection] ?? "Overview"}</span>
-          </nav>
-
           <div className="flex items-center gap-2">
-            <h1 className="dashboard-page-title relative truncate text-lg font-bold tracking-[-0.035em] text-[var(--app-text)] sm:text-[21px]">
-              Your dashboard
+            <h1 className="dashboard-page-title relative truncate text-lg font-medium text-[var(--app-text)] sm:text-[21px]">
+              {sectionLabels[activeSection] ?? "Overview"}
             </h1>
           </div>
         </div>
@@ -68,7 +58,7 @@ function Header({ onMenuClick, isMobileMenuOpen, activeSection, onNotificationsC
           onClick={onNotificationsClick}
           aria-label="Notifications"
           title="Notifications"
-          className="app-transition relative flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text-muted)] shadow-sm hover:-translate-y-0.5 hover:bg-[var(--app-surface-secondary)] hover:text-[var(--app-accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
+          className="app-transition relative flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text-muted)] hover:bg-[var(--app-surface-secondary)] hover:text-[var(--app-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
         >
           <Bell className="header-bell" size={19} strokeWidth={1.8} />
         </button>

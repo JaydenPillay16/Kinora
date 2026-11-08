@@ -1,5 +1,5 @@
 
-import { useId, type CSSProperties } from 'react'
+import { type CSSProperties } from 'react'
 
 interface KinoraLogoProps {
   showWordmark?: boolean
@@ -14,7 +14,6 @@ export default function KinoraLogo({
   size = 44,
   className = '',
 }: KinoraLogoProps) {
-  const gradientId = `kinora-mint-${useId().replace(/:/g, '')}`
   const style = {
     '--logo-size': `${size}px`,
   } as CSSProperties
@@ -26,7 +25,7 @@ export default function KinoraLogo({
       aria-label="Kinora"
     >
       <div
-        className="kinora-mark grid shrink-0 place-items-center overflow-hidden rounded-[17px] shadow-lg shadow-emerald-950/10"
+        className="kinora-mark grid shrink-0 place-items-center overflow-hidden rounded-[10px]"
         style={{ width: size, height: size }}
       >
         <svg
@@ -34,29 +33,22 @@ export default function KinoraLogo({
           width={size * 0.7}
           height={size * 0.7}
           fill="none"
+          className="text-white"
           role="img"
           aria-label="Kinora symbol"
         >
-          <defs>
-            <linearGradient id={gradientId} x1="8" y1="8" x2="40" y2="40">
-              <stop offset="0%" stopColor="var(--kinora-mark-start)" />
-              <stop offset="100%" stopColor="var(--kinora-mark-end)" />
-            </linearGradient>
-          </defs>
-
-          <path d="M24 23C20 17 14 14 9 17 2 21 5 30 11 35l10 8-1-7" stroke={`url(#${gradientId})`} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M24 23c4-6 10-9 15-6 7 4 4 13-2 18l-10 8 1-7" stroke={`url(#${gradientId})`} strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M24 39s-15-8.4-15-19a8 8 0 0 1 15-3.8A8 8 0 0 1 39 20c0 10.6-15 19-15 19Z" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
 
       {showWordmark && (
         <div className="min-w-0">
-          <span className="block text-[21px] font-bold tracking-[-0.04em] text-[var(--app-text)]">
-            kinora<span className="text-[var(--app-accent)]">.</span>
+          <span className="block text-[18px] font-semibold tracking-[-0.02em] text-[var(--app-text)]">
+            Kinora
           </span>
 
           {showTagline && (
-            <span className="mt-0.5 block text-[9px] font-semibold uppercase tracking-[0.16em] text-[var(--app-text-muted)]">
+            <span className="mt-1 block text-[11px] font-medium text-[var(--app-text-muted)]">
               Stay close to what matters
             </span>
           )}

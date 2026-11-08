@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import {
   ArrowRight,
+  CircleAlert,
   CalendarHeart,
   CheckCircle2,
   Eye,
@@ -112,65 +113,61 @@ export default function AuthForm({ onAccountCreationStart, onAccountCreationComp
       </div>
 
       <div className="auth-layout relative z-10 mx-auto my-auto grid w-full max-w-[1240px] grid-cols-1 items-stretch gap-5 py-6 lg:grid-cols-[1.04fr_.96fr] lg:gap-6 lg:py-10">
-        <section className="auth-story-panel relative isolate flex min-h-[300px] flex-col overflow-hidden rounded-[28px] p-6 sm:p-9 lg:min-h-[650px] lg:rounded-[32px] lg:p-11">
-          <div aria-hidden="true" className="auth-story-glow pointer-events-none absolute -right-24 -top-20 -z-10 h-96 w-96 rounded-full blur-3xl" />
-          <div aria-hidden="true" className="auth-story-orbit auth-story-orbit-one pointer-events-none absolute -right-14 top-20 -z-10 hidden h-80 w-80 rounded-full border lg:block" />
-          <div aria-hidden="true" className="auth-story-orbit auth-story-orbit-two pointer-events-none absolute right-[-2rem] top-36 -z-10 hidden h-56 w-56 rounded-full border lg:block" />
-
+        <section className="auth-story-panel relative isolate flex min-h-[300px] flex-col overflow-hidden rounded-2xl p-6 sm:p-9 lg:min-h-[650px] lg:p-11">
           <KinoraLogo size={48} showTagline />
 
           <div className="relative mt-10 max-w-lg sm:mt-14 lg:mt-auto lg:mb-8">
-            <span className="auth-kicker inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.17em]">
+            <span className="auth-kicker inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium">
               <span className="auth-kicker-dot h-1.5 w-1.5 rounded-full" />
               A more thoughtful way to connect
             </span>
-            <h1 className="mt-5 text-4xl font-bold leading-[1.04] tracking-[-0.055em] sm:text-5xl lg:text-[56px]">
-              Make every
+            <h1 className="mt-5 text-4xl font-medium leading-[1.06] tracking-[-0.035em] sm:text-5xl lg:text-[56px]">
+              Keep your
               <br />
-              little moment
+              people close
               <br />
-              <span className="auth-headline-accent">mean more.</span>
+              <span className="auth-headline-accent">through the days.</span>
             </h1>
             <p className="mt-5 max-w-md text-sm leading-7 text-[var(--auth-story-muted)] sm:text-base">
-              Keep the people you care about close with personal messages, thoughtful reminders, and a little help making time for them.
+              Save the details that matter, plan a message, and make time to reach out.
             </p>
           </div>
 
           <div className="auth-preview-card mt-9 max-w-md rounded-2xl border p-4 sm:p-5 lg:mt-0">
             <div className="flex items-center gap-3">
-              <span className="auth-preview-avatar flex h-10 w-10 items-center justify-center rounded-xl text-xs font-bold">M</span>
+              <span className="auth-preview-avatar flex h-10 w-10 items-center justify-center rounded-lg text-xs font-medium">M</span>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold">A moment for Maya</p>
-                <p className="mt-0.5 text-xs text-[var(--auth-story-muted)]">A note, planned with care</p>
+              <p className="mt-0.5 text-xs text-[var(--auth-story-muted)]">A message draft for later</p>
               </div>
               <CalendarHeart size={18} className="auth-preview-calendar" aria-hidden="true" />
             </div>
             <div className="auth-preview-message mt-4 rounded-xl px-4 py-3 text-sm leading-6">
               “Just wanted to say I’m thinking of you. Hope your day is a good one.”
             </div>
-            <div className="mt-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.13em] text-[var(--auth-story-muted)]">
+            <div className="mt-3 flex items-center gap-2 text-xs font-medium text-[var(--auth-story-muted)]">
               <MessageCircleHeart size={13} className="auth-preview-calendar" aria-hidden="true" />
-              Staying close, one message at a time
+              A message, kept in mind
             </div>
           </div>
 
           <div className="auth-story-footer mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[var(--auth-story-muted)] lg:mt-auto lg:pt-8">
-            <span className="inline-flex items-center gap-2"><UsersRound size={14} />Your personal circle</span>
-            <span className="inline-flex items-center gap-2"><CalendarHeart size={14} />Thoughtful timing</span>
+            <span className="inline-flex items-center gap-2"><UsersRound size={14} />Your contacts</span>
+            <span className="inline-flex items-center gap-2"><CalendarHeart size={14} />Planned messages</span>
           </div>
         </section>
 
-        <section className="auth-form-panel flex items-center justify-center rounded-[28px] border p-6 shadow-xl sm:p-9 lg:rounded-[32px] lg:p-12" aria-labelledby="auth-title">
+        <section className="auth-form-panel flex items-center justify-center rounded-2xl border p-6 sm:p-9 lg:p-10" aria-labelledby="auth-title">
           <div key={isSignUp ? "signup" : "signin"} className="auth-form-content w-full max-w-[410px]">
             <div className="mb-8">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--app-accent)]">Your Kinora space</p>
-              <h2 id="auth-title" className="mt-3 text-3xl font-bold tracking-[-0.045em] text-[var(--app-text)] sm:text-[34px]">
-                {isSignUp ? "Create your account" : "Welcome back"}
+              <p className="text-sm font-medium text-[var(--app-text-muted)]">Kinora account</p>
+              <h2 id="auth-title" className="mt-2 text-3xl font-medium tracking-[-0.03em] text-[var(--app-text)] sm:text-[34px]">
+                {isSignUp ? "Create an account" : "Sign in to Kinora"}
               </h2>
               <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
                 {isSignUp
-                  ? "Set up your account and start making more room for the people who matter."
-                  : "Sign in to pick up where your people need you."}
+                  ? "Create your account and add the people you want to reach."
+                  : "Open your contacts and message plans."}
               </p>
             </div>
 
@@ -209,7 +206,7 @@ export default function AuthForm({ onAccountCreationStart, onAccountCreationComp
 
               {errorMessage && (
                 <div role="alert" className="auth-alert auth-error flex items-start gap-3 rounded-xl border p-3.5 text-sm leading-5">
-                  <span className="mt-0.5 font-bold" aria-hidden="true">!</span><span>{errorMessage}</span>
+                  <CircleAlert size={17} className="mt-0.5 shrink-0" aria-hidden="true" /><span>{errorMessage}</span>
                 </div>
               )}
 
@@ -219,12 +216,10 @@ export default function AuthForm({ onAccountCreationStart, onAccountCreationComp
                 </div>
               )}
 
-              <button type="submit" disabled={loading} className="auth-submit group flex w-full items-center justify-center gap-2.5 rounded-xl px-5 py-3.5 text-sm font-semibold shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:translate-y-0 disabled:cursor-wait disabled:opacity-70">
+          <button type="submit" disabled={loading} className="auth-submit group flex w-full items-center justify-center gap-2.5 rounded-lg px-5 py-3 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)] disabled:cursor-wait disabled:opacity-70">
                 {loading ? <><LoaderCircle size={17} className="animate-spin" />{isSignUp ? "Creating your account…" : "Signing you in…"}</> : <>{isSignUp ? "Create account" : "Sign in to Kinora"}<ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" /></>}
               </button>
             </form>
-
-            <div className="auth-divider my-7 flex items-center gap-3"><span className="h-px flex-1" /><span className="text-[10px] font-semibold uppercase tracking-[0.15em]">A little more connection</span><span className="h-px flex-1" /></div>
 
             <p className="text-center text-sm text-[var(--app-text-muted)]">
               {isSignUp ? "Already have an account?" : "New to Kinora?"}{" "}
@@ -232,7 +227,7 @@ export default function AuthForm({ onAccountCreationStart, onAccountCreationComp
                 {isSignUp ? "Sign in" : "Create an account"}
               </button>
             </p>
-            <p className="mt-7 text-center text-[11px] leading-5 text-[var(--app-text-muted)]">By continuing, you agree to use Kinora thoughtfully and keep your sign-in details private.</p>
+            <p className="mt-7 text-center text-xs leading-5 text-[var(--app-text-muted)]">Your workspace is connected to your Supabase account.</p>
           </div>
         </section>
       </div>
