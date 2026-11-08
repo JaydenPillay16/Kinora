@@ -108,19 +108,16 @@ export default function AuthForm({ onAccountCreationStart, onAccountCreationComp
   return (
     <main className="auth-shell relative flex min-h-screen flex-col px-4 py-5 sm:px-6 sm:py-7">
       <div aria-hidden="true" className="auth-page-glow pointer-events-none fixed inset-0" />
-      <div className="auth-topbar relative z-10 mx-auto flex w-full max-w-[1240px] justify-end">
+      <div className="auth-topbar relative z-10 mx-auto flex w-full max-w-[1240px] items-center justify-between lg:justify-end">
+        <KinoraLogo className="lg:hidden" size={38} />
         <ThemeToggle />
       </div>
 
       <div className="auth-layout relative z-10 mx-auto my-auto grid w-full max-w-[1240px] grid-cols-1 items-stretch gap-5 py-6 lg:grid-cols-[1.04fr_.96fr] lg:gap-6 lg:py-10">
-        <section className="auth-story-panel relative isolate flex min-h-[300px] flex-col overflow-hidden rounded-2xl p-6 sm:p-9 lg:min-h-[650px] lg:p-11">
+        <section className="auth-story-panel relative isolate hidden lg:flex min-h-[300px] flex-col overflow-hidden rounded-2xl p-6 sm:p-9 lg:min-h-[650px] lg:p-11">
           <KinoraLogo size={48} showTagline />
 
           <div className="relative mt-10 max-w-lg sm:mt-14 lg:mt-auto lg:mb-8">
-            <span className="auth-kicker inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium">
-              <span className="auth-kicker-dot h-1.5 w-1.5 rounded-full" />
-              A more thoughtful way to connect
-            </span>
             <h1 className="mt-5 text-4xl font-medium leading-[1.06] tracking-[-0.035em] sm:text-5xl lg:text-[56px]">
               Keep your
               <br />
@@ -182,7 +179,6 @@ export default function AuthForm({ onAccountCreationStart, onAccountCreationComp
               <div>
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <label htmlFor="auth-password" className="block text-sm font-semibold text-[var(--app-text)]">Password</label>
-                  {!isSignUp && <span className="text-xs text-[var(--app-text-muted)]">Your account password</span>}
                 </div>
                 <div className="auth-input-wrap relative">
                   <LockKeyhole size={17} className="auth-input-icon absolute left-4 top-1/2 -translate-y-1/2" aria-hidden="true" />
@@ -220,13 +216,12 @@ export default function AuthForm({ onAccountCreationStart, onAccountCreationComp
               </button>
             </form>
 
-            <p className="text-center text-sm text-[var(--app-text-muted)]">
+            <p className="mt-6 text-center text-sm text-[var(--app-text-muted)]">
               {isSignUp ? "Already have an account?" : "New to Kinora?"}{" "}
               <button type="button" disabled={loading} onClick={() => switchMode(!isSignUp)} className="auth-mode-link rounded-sm font-semibold transition hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]">
                 {isSignUp ? "Sign in" : "Create an account"}
               </button>
             </p>
-            <p className="mt-7 text-center text-xs leading-5 text-[var(--app-text-muted)]">Your workspace is connected to your Supabase account.</p>
           </div>
         </section>
       </div>

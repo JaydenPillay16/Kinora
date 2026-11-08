@@ -1,62 +1,41 @@
+import { useState } from "react";
+import { BookUser, Search } from "lucide-react";
+import ContactCard from "./ContactCard";
+import type { Contact } from "./types";
 
-import ContactCard from './ContactCard'
-import type { Contact } from './types'
-import { Heart } from 'lucide-react'
-
-interface ContactListProps {
-  contacts: Contact[]
-  onDelete: (contactId: string) => void
+interface Props {
+  contacts: Contact[];
+  onMessage: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
-function ContactList({ contacts, onDelete }: ContactListProps) {
-  if (contacts.length === 0) {
-    return (
-      <section className="surface overflow-hidden rounded-2xl border border-dashed border-[var(--app-border)] px-6 py-14 text-center sm:py-16">
-        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface-secondary)] text-[var(--app-accent)]">
-          <Heart size={19} strokeWidth={1.7} aria-hidden="true" />
-        </div>
+const normalize = (value: string) => value.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase();
 
-        <h3 className="mt-4 text-xl font-medium text-[var(--app-text)]">
-          Your circle starts here
-        </h3>
+export default function ContactList({ contacts, onMessage, onDelete }: Props) {
+  const [query, setQuery] = useState("");
+  const term = normalize(query.trim());
+  const digits = /^[+\d\s()-]+$/.test(term) ? term.replace(/\D/g, "") : "";
+  const matches = contacts.filter(c =>
+    normalize([c.name, c.relationship, c.phoneNumber].join(" ")).includes(term)
+    || Boolean(digits && c.phoneNumber?.replace(/\D/g, "").includes(digits))
+  ).sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
 
-        <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[var(--app-text-muted)]">
-          Add someone you want to keep in touch with, along with the details you want to remember.
-        </p>
+  if (!contacts.length) return <div className="directory-empty">
+    <BookUser size={28} aria-hidden="true" /><h3>Your address book is empty</h3>
+    <p>Add a contact above to keep their number and personal notes together.</p>
+  </div>;
 
-      </section>
-    )
-  }
-
-  return (
-    <section aria-label="Your contacts">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h3 className="text-sm font-medium tracking-tight text-[var(--app-text)]">
-            Saved contacts
-          </h3>
-          <p className="mt-1 text-sm text-[var(--app-text-muted)]">
-          People and details you have saved.
-          </p>
-        </div>
-
-        <span className="inline-flex items-center gap-2 rounded-full border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-xs font-semibold text-[var(--app-text-muted)] shadow-sm">
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--app-accent)]" />
-          {contacts.length} {contacts.length === 1 ? 'contact' : 'contacts'}
-        </span>
-      </div>
-
-      <div className={`grid grid-cols-1 gap-4 sm:gap-5 ${contacts.length === 1 ? "lg:max-w-[620px]" : "md:grid-cols-2 2xl:grid-cols-3"}`}>
-        {contacts.map((contact) => (
-          <ContactCard
-            key={contact.id}
-            contact={contact}
-            onDelete={onDelete}
-          />
-        ))}
-      </div>
-    </section>
-  )
+  return <section className="directory" aria-label="Address book">
+    <div className="directory-tools">
+      <label className="directory-search"><Search size={18} aria-hidden="true" />
+        <span className="sr-only">Find a contact by name, relationship, or number</span>
+        <input type="search" placeholder="Find a contact…" value={query} onChange={e => setQuery(e.target.value)} />
+      </label>
+      <span role="status">{term ? `${matches.length} of ${contacts.length}` : contacts.length} {contacts.length === 1 ? "contact" : "contacts"}</span>
+    </div>
+    {matches.length ? <ul>{matches.map(contact =>
+      <li key={contact.id}><ContactCard contact={contact} onMessage={onMessage} onDelete={onDelete} /></li>)}</ul> :
+      <div className="directory-empty"><h3>No matching contacts</h3><p>Try their name, relationship, or phone number.</p>
+        <button type="button" onClick={() => setQuery("")}>Clear search</button></div>}
+  </section>;
 }
-
-export default ContactList

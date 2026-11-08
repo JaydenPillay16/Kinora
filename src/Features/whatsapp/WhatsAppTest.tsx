@@ -4,9 +4,9 @@ import { Clock3, LoaderCircle, MessageSquareText, Send } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
 import type { Contact } from "../contacts/types";
 
-export default function WhatsAppTest({ contacts, initialDraft, onSendComplete }: { contacts: Contact[]; initialDraft?: { contactId: string; message: string; agentName: string }; onSendComplete: () => void }) {
+export default function WhatsAppTest({ contacts, initialDraft, onSendComplete }: { contacts: Contact[]; initialDraft?: { contactId: string; message?: string; agentName?: string }; onSendComplete: () => void }) {
   const [selectedContactId, setSelectedContactId] = useState(initialDraft?.contactId ?? "");
-  const [sendMode, setSendMode] = useState<"template" | "custom">(initialDraft ? "custom" : "template");
+  const [sendMode, setSendMode] = useState<"template" | "custom">(initialDraft?.message !== undefined ? "custom" : "template");
   const [customMessage, setCustomMessage] = useState(initialDraft?.message ?? "");
   const [customReady, setCustomReady] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -115,7 +115,7 @@ export default function WhatsAppTest({ contacts, initialDraft, onSendComplete }:
       <div>
         <h2 className="text-xl font-medium tracking-tight">Send a WhatsApp message</h2>
         <p className="muted-text mt-1 text-sm">
-          {initialDraft ? `Review the message from ${initialDraft.agentName}. Sending now does not change its saved plan.` : "Choose a contact, review your message, and send when you are ready."}
+          {initialDraft?.agentName ? `Review the message from ${initialDraft.agentName}. Sending now does not change its saved plan.` : "Choose a contact, review your message, and send when you are ready."}
         </p>
       </div>
 
@@ -129,10 +129,10 @@ export default function WhatsAppTest({ contacts, initialDraft, onSendComplete }:
               <option key={contact.id} value={contact.id}>{contact.name} · {contact.phoneNumber}</option>
             ))}
           </select>
-          <p className="text-xs leading-5 text-[var(--app-text-muted)]">For now, the Edge Function only allows your configured test recipient.</p>
+          <p className="text-xs leading-5 text-[var(--app-text-muted)]">Sending is limited to your configured test recipient.</p>
         </div>
 
-        <div className="space-y-2 lg:col-span-2">
+        <div className="space-y-2">
           <span className="block text-sm font-semibold text-[var(--app-text)]">Message type</span>
           <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="Message type">
             <button type="button" onClick={() => { setSendMode("template"); setResult(""); }} aria-pressed={sendMode === "template"} className={`flex items-start gap-3 rounded-xl border p-3 text-left transition ${sendMode === "template" ? "border-[var(--app-accent)] bg-[var(--app-surface-secondary)]" : "border-[var(--app-border)] hover:border-[var(--app-accent)]"}`}>
@@ -165,7 +165,7 @@ export default function WhatsAppTest({ contacts, initialDraft, onSendComplete }:
         </div>
         </fieldset>
 
-        <div className="flex flex-col items-start gap-3 lg:col-span-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
           <button type="submit" disabled={sending || (sendMode === "custom" && !customReady)} className="auth-submit inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium disabled:opacity-60">
             {sending ? <><LoaderCircle size={16} className="animate-spin" />Sending…</> : <><Send size={15} />{sendMode === "custom" ? "Send custom message" : "Send greeting"}</>}
           </button>

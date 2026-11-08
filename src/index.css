@@ -311,3 +311,78 @@ html { scrollbar-color: color-mix(in srgb, var(--app-text-muted) 42%, transparen
     transition-duration: 0.01ms !important;
   }
 }
+
+/* The overview pairs a personal letterhead with the next dated entry. */
+:root { --ink-green: #174c3c; --ink-on-green: #f8f5e9; --slip-paper: #f8f1df; --slip-ink: #303b2e; }
+:root.dark { --ink-green: #243e33; --slip-paper: #30352b; --slip-ink: #f4ecd7; }
+.letterhead {
+  display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(14rem, .8fr);
+  align-items: center; gap: clamp(1.5rem, 4vw, 4rem);
+  padding: clamp(1.5rem, 4vw, 3.8rem); border-radius: 16px;
+  background: var(--ink-green); color: var(--ink-on-green);
+}
+.letterhead h2, .slip-title, .auth-story-panel h1, #auth-title, .content-section h2, .upcoming-section h2, .history-section h2 {
+  font-family: Georgia, Cambria, serif; font-weight: 400; letter-spacing: -.04em;
+}
+.letterhead h2 { font-size: clamp(3rem, 5vw, 5rem); line-height: 1; }
+.letterhead-intro > p { margin-top: .85rem; max-width: 34ch; line-height: 1.6; color: #e0e8db; }
+.letterhead-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.5rem; }
+.letterhead-actions :is(a, button), .plan-slip a, .directory-actions button, .drawer-close, .header-signout {
+  min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: .5rem; font-size: .875rem;
+}
+.letterhead-actions :is(a,button) { border-radius: 8px; padding: .65rem .95rem; font-weight: 600; }
+.letterhead-actions a { color: #184533; background: #f6f1df; }
+.letterhead-actions button { border: 1px solid #87a491; }
+.letterhead-actions :focus-visible { outline-color: #f8f1df; }
+.plan-slip { background: var(--slip-paper); color: var(--slip-ink); border-radius: 4px 14px 4px 4px; padding: 1.35rem 1.5rem .8rem; }
+.slip-label, .directory-tools { display: flex; align-items: center; gap: .65rem; }
+.slip-label { font-size: .85rem; font-weight: 600; padding-bottom: .7rem; border-bottom: 1px solid color-mix(in srgb, currentColor 22%, transparent); }
+.slip-title { margin: .75rem 0 .25rem; font-size: 1.65rem; line-height: 1.15; overflow-wrap: anywhere; }
+.plan-slip p:not(.slip-title) { font-size: .9rem; line-height: 1.5; }
+.plan-slip a { text-decoration: underline; text-underline-offset: .23em; }
+.header-signout, .drawer-close, .delete-contact { width: 44px; border-radius: 8px; }
+.nav-drawer { margin: 0; max-height: 100dvh; max-width: 90vw; background: var(--app-surface); color: var(--app-text); }
+.nav-drawer::backdrop { background: rgb(14 24 18 / 50%); }
+.nav-drawer .sidebar-shell { min-height: 0; height: 100dvh; }
+.drawer-close { position: absolute; right: 4px; top: 4px; z-index: 1; color: var(--app-text); }
+.directory, .directory-empty { border: 1px solid var(--app-border); border-radius: 14px; background: var(--app-surface); }
+.directory-tools { padding: .85rem 1.25rem; justify-content: space-between; flex-wrap: wrap; border-bottom: 1px solid var(--app-border); }
+.directory-tools > span, .directory-person > p, .directory-empty p { color: var(--app-text-muted); font-size: .9rem; }
+.directory-search { display: flex; align-items: center; gap: .7rem; min-width: 0; width: min(100%, 23rem); padding-inline: .8rem; background: var(--app-background); border: 1px solid var(--app-border); border-radius: 8px; }
+.directory-search input { width: 100%; min-width: 0; height: 44px; outline: none; background: transparent; }
+.directory-search:focus-within { outline: 2px solid var(--app-focus-ring); }
+.directory-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 1rem; padding: 1.1rem 1.25rem; }
+.directory li + li { border-top: 1px solid var(--app-border); }
+.directory-avatar { width: 44px; height: 44px; display: grid; place-items: center; background: var(--app-surface-secondary); color: var(--app-accent); border-radius: 50%; font: 1.1rem Georgia, serif; }
+.directory-person { overflow-wrap: anywhere; }
+.directory-person h3 { font-weight: 600; }
+.directory-person summary { display: list-item; width: fit-content; cursor: pointer; padding-block: .65rem; font-size: .85rem; color: var(--app-accent); }
+.directory-person details p { white-space: pre-wrap; max-width: 66ch; }
+.directory-actions { display: flex; align-items: center; gap: .35rem; }
+.compose-contact { border: 1px solid var(--app-border); border-radius: 8px; padding-inline: .85rem; color: var(--app-primary); }
+.delete-contact { color: var(--app-text-muted); }
+.directory-empty { padding: 2rem; }
+.directory .directory-empty { border: 0; }
+.directory-empty h3 { margin-block: .45rem; font-size: 1.25rem; }
+.directory-empty button { min-height: 44px; text-decoration: underline; color: var(--app-primary); }
+@media (hover:hover) {
+  .compose-contact:hover, .header-signout:hover, .drawer-close:hover { background: var(--app-surface-secondary); }
+  .delete-contact:hover { color: var(--app-negative); background: var(--app-surface-secondary); }
+  .letterhead-actions a:hover { background: white; }
+  .letterhead-actions button:hover { background: rgb(255 255 255 / 10%); }
+}
+@media (max-width: 799px) {
+  .letterhead { grid-template-columns: 1fr; }
+  .letterhead-intro > p { max-width: 42ch; }
+}
+@media (max-width: 639px) {
+  .directory-row { grid-template-columns: auto minmax(0, 1fr); gap: .65rem .9rem; }
+  .directory-actions { grid-column: 2; }
+  .auth-shell .auth-layout { margin-block: 0 auto; }
+  input:not([type=checkbox],[type=radio]), textarea, select { font-size: 1rem; }
+}
+@media (pointer: coarse) {
+  :where(.app-shell, .auth-shell) button, .sidebar-shell .nav-item, .directory-person summary { min-height: 44px; }
+  :where(.app-shell, .auth-shell) button { min-width: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { button:not(:disabled):active { transform: none; } }

@@ -1,9 +1,10 @@
 
-import { Menu, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import KinoraLogo from "../branding/KinoraLogo";
 import ThemeToggle from "../branding/ThemeToggle";
 
 interface HeaderProps {
+  onSignOut: () => void;
   onMenuClick: () => void;
   isMobileMenuOpen: boolean;
   activeSection: string;
@@ -16,9 +17,10 @@ const sectionLabels: Record<string, string> = {
   contacts: "Contacts",
   schedule: "Schedule",
   history: "History",
+  "whatsapp-composer": "Compose",
 };
 
-function Header({ onMenuClick, isMobileMenuOpen, activeSection }: HeaderProps) {
+function Header({ onSignOut, onMenuClick, isMobileMenuOpen, activeSection }: HeaderProps) {
   return (
     <header className="app-transition sticky top-0 z-30 flex min-h-16 items-center justify-between gap-3 border-b border-[var(--app-border)] bg-[var(--app-surface)] px-4 sm:px-6 lg:px-8">
       <div className="flex min-w-0 items-center gap-3">
@@ -47,6 +49,7 @@ function Header({ onMenuClick, isMobileMenuOpen, activeSection }: HeaderProps) {
 
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         <ThemeToggle />
+        <button type="button" aria-label="Sign out" title="Sign out" className="header-signout" onClick={onSignOut}><LogOut size={17} /></button>
       </div>
     </header>
   );

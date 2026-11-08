@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
   LoaderCircle,
-  LogOut,
-  Plus,
   UserRoundPlus,
 } from "lucide-react";
 
+import MobileNavigation from "./Components/layout/MobileNavigation";
+import Overview from "./Components/layout/Overview";
 import Sidebar from "./Components/layout/Sidebar";
 import Header from "./Components/layout/Header";
 import KinoraLogo from "./Components/branding/KinoraLogo";
@@ -51,7 +51,7 @@ function App() {
   const [agentsRetryCount, setAgentsRetryCount] = useState(0);
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
-  const [sendDraft, setSendDraft] = useState<{ contactId: string; message: string; agentName: string; key: number } | null>(null);
+  const [sendDraft, setSendDraft] = useState<{ contactId: string; message?: string; agentName?: string; key: number } | null>(null);
 
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoadingContacts, setIsLoadingContacts] = useState(true);
@@ -60,6 +60,19 @@ function App() {
   const [scheduledLoadError, setScheduledLoadError] = useState(false);
   const [scheduledRetryCount, setScheduledRetryCount] = useState(0);
   const [isCreatingContact, setIsCreatingContact] = useState(false);
+
+  useEffect(() => {
+    if (!sendDraft) return;
+    const composer = document.getElementById("whatsapp-composer");
+    composer?.focus({ preventScroll: true });
+    composer?.scrollIntoView({ block: "start" });
+  }, [sendDraft]);
+
+  useEffect(() => {
+    if (isCreatingAgent || editingAgent) {
+      document.getElementById("agent-editor")?.focus();
+    }
+  }, [isCreatingAgent, editingAgent]);
 
   // --------------------------------------------------
   // AUTHENTICATION
@@ -109,7 +122,7 @@ function App() {
   useEffect(() => {
     if (!session) return;
 
-    const sectionIds = ["overview", "analytics", "agents", "contacts", "schedule", "history"];
+    const sectionIds = ["overview", "analytics", "agents", "contacts", "schedule", "history", "whatsapp-composer"];
     const sections = sectionIds
       .map((id) => document.getElementById(id))
       .filter((section): section is HTMLElement => section !== null);
@@ -738,20 +751,7 @@ function App() {
   return (
     <div className="app-transition app-shell flex min-h-screen bg-[var(--app-background)] text-[var(--app-text)]">
       {/* Mobile navigation backdrop and drawer */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <button
-            type="button"
-            aria-label="Close navigation menu"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="absolute inset-0 h-full w-full bg-black/40 backdrop-blur-[2px]"
-          />
-
-          <div className="app-transition absolute inset-y-0 left-0 max-w-[85vw] overflow-y-auto">
-            <Sidebar activeSection={activeSection} onNavigate={() => setIsMobileMenuOpen(false)} />
-          </div>
-        </div>
-      )}
+      {isMobileMenuOpen && <MobileNavigation activeSection={activeSection} onDismiss={() => setIsMobileMenuOpen(false)} />}
 
       {/* Desktop sidebar */}
       <div className="sticky top-0 hidden h-screen shrink-0 self-start lg:block">
@@ -763,60 +763,22 @@ function App() {
         <Header
           activeSection={activeSection}
           isMobileMenuOpen={isMobileMenuOpen}
+          onSignOut={async () => {
+            const { error } = await supabase.auth.signOut();
+            if (error) notify("Could not sign out. Please try again.", "error");
+          }}
           onMenuClick={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
         />
 
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-9">
           <div className="mx-auto max-w-[1440px]">
             {/* Welcome section */}
-            <div id="overview" className="dashboard-intro scroll-mt-28 relative flex flex-col gap-7 overflow-hidden rounded-2xl border border-[var(--app-border)] px-6 py-7 sm:px-8 sm:py-8 lg:flex-row lg:items-end lg:justify-between lg:px-10 lg:py-9">
-              <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-24 h-72 w-72 rounded-full bg-[var(--app-accent)] opacity-[0.10] blur-3xl" />
-              <div className="min-w-0">
-                <h2 className="greeting-title text-4xl font-medium tracking-[-0.035em] text-[var(--app-text)] sm:text-5xl">
-                  Your circle
-                </h2>
-
-                <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--app-text-muted)] sm:text-base">
-                  Keep important details close and make time for the messages you plan to send.
-                </p>
-              </div>
-
-              <div className="relative flex shrink-0 flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const { error } = await supabase.auth.signOut();
-
-                    if (error) {
-                      console.error("Sign out failed:", error.message);
-                      notify("Could not sign out. Please try again.", "error");
-                    }
-                  }}
-                  className="hero-secondary-action group inline-flex items-center gap-2 rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3 text-sm font-medium text-[var(--app-text-muted)] hover:bg-[var(--app-surface-secondary)] hover:text-[var(--app-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
-                >
-                  <LogOut size={16} className="hero-button-icon" aria-hidden="true" />
-                  Sign out
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingAgent(null);
-                    setIsCreatingAgent(true);
-                  }}
-                    className="primary-action hero-primary-action group inline-flex items-center justify-center gap-2.5 rounded-lg bg-[var(--app-primary)] px-5 py-3 text-sm font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
-                >
-                  <span aria-hidden="true" className="hero-plus flex h-6 w-6 items-center justify-center rounded-lg bg-white/15">
-                    <Plus size={16} strokeWidth={2.3} />
-                  </span>
-                  Create an agent
-                </button>
-              </div>
-            </div>
+            <Overview plan={scheduledMessages[0]} loading={isLoadingScheduledMessages} failed={scheduledLoadError}
+              onCreate={() => { setEditingAgent(null); setIsCreatingAgent(true); }} />
 
             {/* Agent creation and editing form */}
             {(isCreatingAgent || editingAgent) && (
-              <section className="mt-8">
+              <section id="agent-editor" tabIndex={-1} aria-label="Agent editor" className="mt-8 scroll-mt-24">
                 <AgentForm
                   key={editingAgent?.id ?? "new-agent"}
                   contacts={contacts}
@@ -905,7 +867,6 @@ function App() {
                 <AgentList
                   onSendNow={(agent) => {
                     setSendDraft({ contactId: agent.contactId, message: agent.messageTemplate, agentName: agent.name, key: Date.now() });
-                    document.getElementById("whatsapp-composer")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
                   }}
                   agents={agents}
                   onCreate={() => {
@@ -968,6 +929,7 @@ function App() {
               ) : (
                 <ContactList
                   contacts={contacts}
+                  onMessage={(contactId) => setSendDraft({ contactId, key: Date.now() })}
                   onDelete={handleDeleteContact}
                 />
               )}
@@ -995,7 +957,7 @@ function App() {
             </section>
 
             {/* WhatsApp Cloud API integration test */}
-            <section id="whatsapp-composer" className="mt-10 scroll-mt-28">
+            <section tabIndex={-1} aria-label="Message composer" id="whatsapp-composer" className="mt-10 scroll-mt-28">
               <WhatsAppTest key={sendDraft?.key ?? "manual"} contacts={contacts} initialDraft={sendDraft ?? undefined} onSendComplete={() => setHistoryRefreshKey((value) => value + 1)} />
             </section>
           </div>
