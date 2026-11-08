@@ -14,6 +14,7 @@ export default function MobileNavigation({ activeSection, onDismiss }: { activeS
     document.body.style.overflow = "hidden";
     return () => {
       desktop.removeEventListener("change", resize);
+      if (dialog.open) dialog.close();
       document.body.style.overflow = previous;
     };
   }, []);

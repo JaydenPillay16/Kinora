@@ -386,3 +386,4 @@ html { scrollbar-color: color-mix(in srgb, var(--app-text-muted) 42%, transparen
   :where(.app-shell, .auth-shell) button { min-width: 44px; }
 }
 @media (prefers-reduced-motion: reduce) { button:not(:disabled):active { transform: none; } }
+.nav-drawer { position: fixed; inset: 0 auto 0 0; width: min(272px, 90vw); }
