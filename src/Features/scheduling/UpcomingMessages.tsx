@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarClock, CalendarDays, Clock3, MessageCircle, MessageSquareText, X } from "lucide-react";
+import { ArrowRight, CalendarDays, Clock3, MessageCircle, MessageSquareText, X } from "lucide-react";
 import LoadError from "../../Components/feedback/LoadError";
 import type { ScheduledMessage } from "./types";
 
@@ -26,10 +26,6 @@ function UpcomingMessages({ messages, isLoading, loadError, onRetry, onCancel, o
     <section id="schedule" className="upcoming-section mt-12 scroll-mt-28">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="mb-2 flex items-center gap-2 text-sm font-medium text-[var(--app-accent)]">
-            <CalendarClock size={14} aria-hidden="true" />
-            Schedule
-          </p>
           <h2 className="text-2xl font-medium text-[var(--app-text)] sm:text-[26px]">Upcoming messages</h2>
           <p className="mt-1.5 text-sm text-[var(--app-text-muted)]">Saved plans for reaching out.</p>
         </div>
@@ -54,8 +50,7 @@ function UpcomingMessages({ messages, isLoading, loadError, onRetry, onCancel, o
           <div className="relative flex flex-col gap-8 lg:min-h-[210px] lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-xl">
               <div className="schedule-empty-icon mb-4 flex h-10 w-10 items-center justify-center rounded-lg text-[var(--app-accent)]"><MessageCircle size={19} strokeWidth={1.7} /></div>
-              <p className="text-sm font-medium text-[var(--app-accent)]">Schedule</p>
-              <h3 className="mt-2 text-2xl font-medium text-[var(--app-text)] sm:text-[28px]">No messages planned yet</h3>
+              <h3 className="text-2xl font-medium text-[var(--app-text)] sm:text-[28px]">No messages planned yet</h3>
               <p className="mt-3 max-w-lg text-sm leading-7 text-[var(--app-text-muted)] sm:text-[15px]">
                 Add a future date to an agent to keep a message plan in this list.
               </p>

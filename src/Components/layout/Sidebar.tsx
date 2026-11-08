@@ -1,5 +1,4 @@
 import {
-  Activity,
   Bot,
   CalendarClock,
   ChartNoAxesCombined,
@@ -20,7 +19,7 @@ interface NavigationItem {
 
 const navigationItems: NavigationItem[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard, description: "Your dashboard" },
-  { id: "analytics", label: "Analytics", icon: ChartNoAxesCombined, description: "Your message and contact totals" },
+  { id: "analytics", label: "At a glance", icon: ChartNoAxesCombined, description: "Your message and contact totals" },
   { id: "agents", label: "My agents", icon: Bot, description: "Manage your messaging agents" },
   { id: "contacts", label: "Contacts", icon: UsersRound, description: "Your important people" },
   { id: "schedule", label: "Schedule", icon: CalendarClock, description: "Upcoming messages" },
@@ -34,14 +33,13 @@ interface SidebarProps {
 
 function Sidebar({ onNavigate, activeSection }: SidebarProps) {
   return (
-    <aside className="sidebar-shell app-transition sticky top-0 flex h-screen min-h-screen w-[272px] shrink-0 flex-col overflow-y-auto border-r border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-6 sm:px-5">
+    <aside className="sidebar-shell app-transition sticky top-0 flex h-screen min-h-screen w-[248px] shrink-0 flex-col overflow-y-auto border-r border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-6 sm:px-5">
       <a href="#overview" aria-label="Kinora home" className="mb-8 rounded-lg px-2 py-1.5 outline-none">
         <KinoraLogo size={48} showTagline />
       </a>
 
-      <div className="mb-3 flex items-center justify-between px-3">
+      <div className="mb-3 px-3">
         <p className="text-xs font-medium text-[var(--app-text-muted)]">Workspace</p>
-        <Activity size={15} strokeWidth={1.8} className="text-[var(--app-accent)]" aria-hidden="true" />
       </div>
 
       <nav aria-label="Main navigation" className="flex flex-col gap-1.5">
@@ -62,13 +60,6 @@ function Sidebar({ onNavigate, activeSection }: SidebarProps) {
       </nav>
 
       <div className="mt-auto pt-8">
-        <div className="sidebar-note relative overflow-hidden rounded-2xl border border-[var(--app-border)] p-4">
-          <div className="relative">
-            <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--app-surface-secondary)] text-[var(--app-accent)]"><UsersRound size={16} strokeWidth={1.7} /></div>
-            <p className="text-sm font-medium text-[var(--app-text)]">Keep your circle close</p>
-            <p className="mt-1.5 text-xs leading-5 text-[var(--app-text-muted)]">Remember the people and moments you want to return to.</p>
-          </div>
-        </div>
         <p className="mt-4 text-center text-xs text-[var(--app-text-muted)]">Kinora · Personal messages</p>
       </div>
     </aside>

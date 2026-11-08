@@ -54,11 +54,7 @@ function ContactForm({ onCreate, onCancel }: ContactFormProps) {
           <UserRound size={18} strokeWidth={1.7} aria-hidden="true" />
         </div>
 
-        <p className="text-sm font-medium text-[var(--app-accent)]">
-          Your people
-        </p>
-
-        <h2 className="mt-2 text-2xl font-medium text-[var(--app-text)] sm:text-3xl">
+        <h2 className="text-2xl font-medium text-[var(--app-text)] sm:text-3xl">
           Add a contact
         </h2>
 

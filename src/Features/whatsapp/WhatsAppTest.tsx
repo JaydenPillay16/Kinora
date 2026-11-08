@@ -113,8 +113,7 @@ export default function WhatsAppTest({ contacts, initialDraft, onSendComplete }:
   return (
     <section className="surface space-y-5 rounded-2xl p-5 sm:p-7">
       <div>
-        <p className="mb-2 text-sm font-medium text-[var(--app-accent)]">WhatsApp</p>
-        <h2 className="text-xl font-medium tracking-tight">Send a message</h2>
+        <h2 className="text-xl font-medium tracking-tight">Send a WhatsApp message</h2>
         <p className="muted-text mt-1 text-sm">
           {initialDraft ? `Review the message from ${initialDraft.agentName}. Sending now does not change its saved plan.` : "Choose a contact, review your message, and send when you are ready."}
         </p>

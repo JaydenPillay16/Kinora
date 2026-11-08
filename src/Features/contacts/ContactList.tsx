@@ -16,11 +16,7 @@ function ContactList({ contacts, onDelete }: ContactListProps) {
           <Heart size={19} strokeWidth={1.7} aria-hidden="true" />
         </div>
 
-        <p className="mt-4 text-sm font-medium text-[var(--app-accent)]">
-          Your people
-        </p>
-
-        <h3 className="mt-2 text-xl font-medium text-[var(--app-text)]">
+        <h3 className="mt-4 text-xl font-medium text-[var(--app-text)]">
           Your circle starts here
         </h3>
 

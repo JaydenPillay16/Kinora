@@ -1,9 +1,5 @@
 
-import {
-  Bell,
-  Menu,
-  X,
-} from "lucide-react";
+import { Menu, X } from "lucide-react";
 import KinoraLogo from "../branding/KinoraLogo";
 import ThemeToggle from "../branding/ThemeToggle";
 
@@ -11,19 +7,18 @@ interface HeaderProps {
   onMenuClick: () => void;
   isMobileMenuOpen: boolean;
   activeSection: string;
-  onNotificationsClick: () => void;
 }
 
 const sectionLabels: Record<string, string> = {
   overview: "Overview",
-  analytics: "Analytics",
+  analytics: "At a glance",
   agents: "My agents",
   contacts: "Contacts",
   schedule: "Schedule",
   history: "History",
 };
 
-function Header({ onMenuClick, isMobileMenuOpen, activeSection, onNotificationsClick }: HeaderProps) {
+function Header({ onMenuClick, isMobileMenuOpen, activeSection }: HeaderProps) {
   return (
     <header className="app-transition sticky top-0 z-30 flex min-h-16 items-center justify-between gap-3 border-b border-[var(--app-border)] bg-[var(--app-surface)] px-4 sm:px-6 lg:px-8">
       <div className="flex min-w-0 items-center gap-3">
@@ -52,16 +47,6 @@ function Header({ onMenuClick, isMobileMenuOpen, activeSection, onNotificationsC
 
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         <ThemeToggle />
-
-        <button
-          type="button"
-          onClick={onNotificationsClick}
-          aria-label="Notifications"
-          title="Notifications"
-          className="app-transition relative flex h-9 w-9 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text-muted)] hover:bg-[var(--app-surface-secondary)] hover:text-[var(--app-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus-ring)]"
-        >
-          <Bell className="header-bell" size={19} strokeWidth={1.8} />
-        </button>
       </div>
     </header>
   );

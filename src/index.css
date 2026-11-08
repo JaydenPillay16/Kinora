@@ -76,9 +76,10 @@ body {
 
 button, input, textarea, select { font: inherit; }
 button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
-button, a { transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast); }
+button, a { transition: color var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast); }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .55; }
+button:not(:disabled):active { transform: scale(.98); transition-duration: 100ms; }
 :focus-visible { outline: 2px solid var(--app-focus-ring); outline-offset: 2px; }
 ::selection { background: #cce7d7; color: #153b2c; }
 .dark ::selection { background: #305741; color: #f4f2ea; }
@@ -250,6 +251,50 @@ p { text-wrap: pretty; }
 .greeting-word { animation: none; }
 .theme-mode-icon { transition: transform var(--transition-fast); }
 .button:hover .theme-mode-icon { transform: none; }
+
+/* Workspace totals stay together as one quiet data surface. */
+.analytics-grid {
+  overflow: hidden;
+  border: 1px solid var(--app-border);
+  border-radius: 14px;
+  background: var(--app-surface);
+}
+.stat-card {
+  border-right: 1px solid var(--app-border);
+  border-bottom: 1px solid var(--app-border);
+}
+.stat-card:nth-child(2n) { border-right: 0; }
+.stat-card:nth-last-child(-n + 2) { border-bottom: 0; }
+
+/* Keep the navigation compact and let section content carry the hierarchy. */
+.sidebar-shell nav { gap: 3px; }
+.sidebar-shell .nav-item { min-height: 40px; }
+.dashboard-intro { min-height: 210px; }
+.dashboard-intro p { max-width: 62ch; }
+
+/* Focus and press states are visible without adding motion to every surface. */
+input, textarea, select {
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+button:focus-visible, a:focus-visible, summary:focus-visible {
+  border-radius: 6px;
+}
+::placeholder { opacity: .78; }
+html { scrollbar-color: color-mix(in srgb, var(--app-text-muted) 42%, transparent) var(--app-background); }
+
+@media (min-width: 1280px) {
+  .stat-card:nth-child(2n) { border-right: 1px solid var(--app-border); }
+  .stat-card:nth-child(4n) { border-right: 0; }
+  .stat-card:nth-last-child(-n + 2) { border-bottom: 1px solid var(--app-border); }
+  .stat-card:nth-last-child(-n + 4) { border-bottom: 0; }
+}
+
+@media (max-width: 639px) {
+  .dashboard-intro { min-height: 0; }
+  .stat-card { padding: 16px; }
+  .stat-card p:first-child { font-size: 13px; }
+  .stat-card .text-3xl { font-size: 26px; }
+}
 
 @keyframes auth-panel-arrive { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes auth-content-arrive { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }

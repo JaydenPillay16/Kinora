@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
-  Bot,
-  ChevronRight,
-  Clock3,
   LoaderCircle,
   LogOut,
   Plus,
@@ -31,7 +28,6 @@ import MessageHistory from "./Features/whatsapp/MessageHistory";
 
 function App() {
   const { notify, confirm } = useFeedback();
-  const [pageOpenedAt] = useState(() => new Date());
   const [session, setSession] = useState<Session | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const accountCreationInProgress = useRef(false);
@@ -766,7 +762,6 @@ function App() {
       <div className="flex min-w-0 flex-1 flex-col">
         <Header
           activeSection={activeSection}
-          onNotificationsClick={() => notify("Notifications will be available here when message alerts are enabled.", "info")}
           isMobileMenuOpen={isMobileMenuOpen}
           onMenuClick={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
         />
@@ -777,12 +772,7 @@ function App() {
             <div id="overview" className="dashboard-intro scroll-mt-28 relative flex flex-col gap-7 overflow-hidden rounded-2xl border border-[var(--app-border)] px-6 py-7 sm:px-8 sm:py-8 lg:flex-row lg:items-end lg:justify-between lg:px-10 lg:py-9">
               <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-24 h-72 w-72 rounded-full bg-[var(--app-accent)] opacity-[0.10] blur-3xl" />
               <div className="min-w-0">
-                <p className="mb-4 inline-flex items-center gap-2 rounded-md border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-xs font-medium text-[var(--app-text-muted)]">
-                  {pageOpenedAt.toLocaleDateString("en-ZA", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-                </p>
-
-                <p className="mb-1 text-sm font-medium text-[var(--app-text-muted)]">Your people and plans</p>
-                <h2 className="greeting-title mt-1 text-4xl font-medium tracking-[-0.035em] text-[var(--app-text)] sm:text-5xl">
+                <h2 className="greeting-title text-4xl font-medium tracking-[-0.035em] text-[var(--app-text)] sm:text-5xl">
                   Your circle
                 </h2>
 
@@ -842,7 +832,7 @@ function App() {
             )}
 
             {/* Dashboard statistics */}
-            <div id="analytics" className="mt-9 scroll-mt-28 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <section id="analytics" aria-label="Workspace totals" className="analytics-grid mt-8 scroll-mt-28 grid grid-cols-2 xl:grid-cols-4">
               {[
                 {
                   label: "Active agents",
@@ -867,74 +857,30 @@ function App() {
                 },
               ].map((stat) => {
                 return (
-                  <section key={stat.label} className="stat-card surface relative overflow-hidden rounded-xl border border-[var(--app-border)] p-5">
-                      <div>
-                        <p className="text-sm font-medium text-[var(--app-text-muted)]">
-                          {stat.label}
-                        </p>
+                  <div key={stat.label} className="stat-card relative min-w-0 p-5 sm:p-6">
+                    <div>
+                      <p className="text-sm font-medium text-[var(--app-text-muted)]">
+                        {stat.label}
+                      </p>
 
-                        <p className="mt-4 text-3xl font-medium tracking-[-0.03em] text-[var(--app-text)] tabular-nums">
-                          {stat.value}
-                        </p>
-                      </div>
-                    <div className="mt-3 border-t border-[var(--app-border)] pt-3">
-                      <p className="text-xs leading-5 text-[var(--app-text-muted)]">
+                      <p className="mt-3 text-3xl font-medium tracking-[-0.03em] text-[var(--app-text)] tabular-nums">
+                        {stat.value}
+                      </p>
+                    </div>
+                    <div className="mt-2">
+                      <p className="text-sm leading-5 text-[var(--app-text-muted)]">
                         {stat.detail}
                       </p>
                     </div>
-                  </section>
+                  </div>
                 );
               })}
-            </div>
-
-            {/* Welcome card */}
-            <section className="welcome-card surface relative mt-6 overflow-hidden rounded-2xl border border-[var(--app-border)] p-6 sm:p-8 lg:p-10">
-              <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-                <div className="max-w-2xl">
-                  <p className="text-sm font-medium text-[var(--app-accent)]">
-                    {agents.length === 0
-                      ? "A place for your people"
-                      : "Your Kinora workspace"}
-                  </p>
-
-                  <h3 className="mt-2 text-xl font-medium text-[var(--app-text)] sm:text-2xl">
-                    {agents.length === 0
-                      ? "Start with the person on your mind"
-                      : "Keep the next message in view"}
-                  </h3>
-
-                  <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--app-text-muted)]">
-                    {agents.length === 0
-                      ? "Add someone to your contacts, then save a message draft or plan a time to reach out."
-                      : "Review your saved drafts, upcoming plans, and the people you want to keep in touch with."}
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingAgent(null);
-                    setIsCreatingAgent(true);
-                  }}
-                    className="relative inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-5 py-3 text-sm font-medium text-[var(--app-text)] sm:self-center"
-                >
-                  {agents.length === 0
-                    ? "Create your first agent"
-                    : "Create an agent"}
-
-                  <ChevronRight size={17} aria-hidden="true" />
-                </button>
-              </div>
             </section>
 
             {/* My agents */}
             <section id="agents" className="agent-section content-section mt-10 scroll-mt-28">
               <div className="mb-5 flex items-end justify-between gap-4">
                 <div>
-                  <p className="mb-2 flex items-center gap-2 text-sm font-medium text-[var(--app-accent)]">
-                    <Bot size={14} strokeWidth={2} aria-hidden="true" />
-                    Your message plans
-                  </p>
                   <h2 className="text-2xl font-medium text-[var(--app-text)] sm:text-[26px]">
                     My agents
                   </h2>
@@ -980,11 +926,7 @@ function App() {
             <section id="contacts" className="content-section mt-12 scroll-mt-28">
               <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div className="min-w-0">
-                  <p className="inline-flex items-center gap-2 rounded-md border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-1.5 text-xs font-medium text-[var(--app-text-muted)]">
-                    Your circle
-                  </p>
-
-                  <h2 className="mt-3 text-2xl font-medium text-[var(--app-text)] sm:text-[28px]">
+                  <h2 className="text-2xl font-medium text-[var(--app-text)] sm:text-[28px]">
                     Contacts
                   </h2>
 
@@ -1046,10 +988,6 @@ function App() {
 
             <section id="history" className="history-section mt-12 scroll-mt-28">
               <div className="mb-5">
-                <p className="mb-2 flex items-center gap-2 text-sm font-medium text-[var(--app-accent)]">
-                  <Clock3 size={14} aria-hidden="true" />
-                  Your activity
-                </p>
                 <h2 className="text-2xl font-medium text-[var(--app-text)] sm:text-[26px]">Message history</h2>
                 <p className="mt-1.5 text-sm text-[var(--app-text-muted)]">Check whether WhatsApp accepted, sent, delivered, or read a message.</p>
               </div>

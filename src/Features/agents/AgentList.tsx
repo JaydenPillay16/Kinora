@@ -21,8 +21,7 @@ function AgentList({ agents, onCreate, onEdit, onToggleStatus, onDelete, onSendN
             <div className="agent-empty-icon mb-4 flex h-10 w-10 items-center justify-center rounded-lg text-[var(--app-accent)]">
               <Bot size={27} strokeWidth={1.7} />
             </div>
-            <p className="text-sm font-medium text-[var(--app-accent)]">Your message plans</p>
-            <h3 id="agent-empty-title" className="mt-2 text-2xl font-medium text-[var(--app-text)] sm:text-[28px]">Create a message plan</h3>
+            <h3 id="agent-empty-title" className="text-2xl font-medium text-[var(--app-text)] sm:text-[28px]">Create a message plan</h3>
             <p className="mt-3 max-w-lg text-sm leading-7 text-[var(--app-text-muted)] sm:text-[15px]">
               Choose a contact, save a personal message draft, and optionally set a time to reach out.
             </p>

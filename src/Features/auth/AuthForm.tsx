@@ -160,8 +160,7 @@ export default function AuthForm({ onAccountCreationStart, onAccountCreationComp
         <section className="auth-form-panel flex items-center justify-center rounded-2xl border p-6 sm:p-9 lg:p-10" aria-labelledby="auth-title">
           <div key={isSignUp ? "signup" : "signin"} className="auth-form-content w-full max-w-[410px]">
             <div className="mb-8">
-              <p className="text-sm font-medium text-[var(--app-text-muted)]">Kinora account</p>
-              <h2 id="auth-title" className="mt-2 text-3xl font-medium tracking-[-0.03em] text-[var(--app-text)] sm:text-[34px]">
+              <h2 id="auth-title" className="text-3xl font-medium tracking-[-0.03em] text-[var(--app-text)] sm:text-[34px]">
                 {isSignUp ? "Create an account" : "Sign in to Kinora"}
               </h2>
               <p className="mt-2 text-sm leading-6 text-[var(--app-text-muted)]">
@@ -183,7 +182,7 @@ export default function AuthForm({ onAccountCreationStart, onAccountCreationComp
               <div>
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <label htmlFor="auth-password" className="block text-sm font-semibold text-[var(--app-text)]">Password</label>
-                  {!isSignUp && <span className="text-[11px] text-[var(--app-text-muted)]">Your account password</span>}
+                  {!isSignUp && <span className="text-xs text-[var(--app-text-muted)]">Your account password</span>}
                 </div>
                 <div className="auth-input-wrap relative">
                   <LockKeyhole size={17} className="auth-input-icon absolute left-4 top-1/2 -translate-y-1/2" aria-hidden="true" />

@@ -78,21 +78,21 @@ export default function MessageHistory({ userId, refreshKey, onDeliveredCount }:
   }, [userId, refreshKey, retry, onDeliveredCount]);
 
   return <div className="space-y-4">
-    <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--app-text-muted)]">
+    <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-[var(--app-text-muted)]">
       <p>{updatedAt ? `Last checked ${updatedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · refreshes every 10 seconds` : "Delivery updates come from WhatsApp."}</p>
       <button type="button" onClick={() => { setLoading(true); setRetry((value) => value + 1); }} className="inline-flex items-center gap-2 rounded-lg border border-[var(--app-border)] px-3 py-2 font-semibold"><RefreshCw size={13} className={loading ? "animate-spin" : ""} />Refresh</button>
     </div>
     {error && <p role="alert" className="surface rounded-2xl p-4 text-sm text-[var(--app-text-muted)]">{error}{messages.length > 0 ? " Showing the last loaded results." : ""}</p>}
     {loading && !updatedAt && <p role="status" className="surface rounded-2xl p-5 text-sm">Loading your messages…</p>}
     {!loading && !error && messages.length === 0 && <div className="surface rounded-2xl p-6"><CheckCheck className="mb-3 text-[var(--app-accent)]" /><p className="font-semibold">Your next message starts this history.</p><p className="muted-text mt-2 text-sm">New sends appear here once tracking is connected. Earlier test messages are not backfilled.</p></div>}
-    {messages.map((message) => <article key={message.id} className="surface space-y-3 rounded-2xl p-5">
+    {messages.map((message) => <article key={message.id} className="history-entry surface space-y-4 rounded-2xl p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div><h3 className="font-semibold">{message.contact_name}</h3><p className="muted-text mt-1 text-xs">{new Date(message.created_at).toLocaleString()} · {message.mode === "custom" ? "Custom message" : "Personalized greeting"}</p></div>
+        <div><h3 className="font-semibold">{message.contact_name}</h3><p className="muted-text mt-1 text-sm">{new Date(message.created_at).toLocaleString()} · {message.mode === "custom" ? "Custom message" : "Personalized greeting"}</p></div>
         <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${message.status === "failed" ? "border-rose-500/30 text-rose-600 dark:text-rose-300" : "border-[var(--app-border)] text-[var(--app-accent)]"}`}>{["delivered", "read"].includes(message.status) ? <CheckCheck size={14} /> : <Clock3 size={14} />}{labels[message.status] ?? "Unconfirmed"}</span>
       </div>
       <p className="whitespace-pre-wrap break-words text-sm leading-6">{message.message_text ?? `WhatsApp template: ${message.template_name}`}</p>
-      <p className="muted-text text-xs leading-5">{message.status === "failed" ? failureDescription(message) : explanations[message.status]}{message.error_code != null ? ` (Code ${message.error_code})` : ""}</p>
-      {message.provider_status_at && <p className="muted-text text-xs">WhatsApp update: {new Date(message.provider_status_at).toLocaleString()}</p>}
+      <p className="muted-text text-sm leading-6">{message.status === "failed" ? failureDescription(message) : explanations[message.status]}{message.error_code != null ? ` (Code ${message.error_code})` : ""}</p>
+      {message.provider_status_at && <p className="muted-text text-sm">WhatsApp update: {new Date(message.provider_status_at).toLocaleString()}</p>}
       {message.provider_message_id && <details className="muted-text text-xs"><summary className="cursor-pointer">Message reference</summary><p className="mt-2 break-all">{message.provider_message_id}</p></details>}
     </article>)}
     {messages.length === 25 && <p className="muted-text text-xs">Showing your latest 25 messages.</p>}
